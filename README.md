@@ -12,7 +12,7 @@
 
 
 
-## 使用
+## 属性
 
 1. `pod "MMPhotoPicker"` ;
 2. `pod install` / `pod update`;
@@ -21,7 +21,7 @@
 ```objc
 MMPhotoPickerController属性介绍：
    
-// 主色调[默认蓝色]
+// 主色调[默认红色]
 @property (nonatomic, strong) UIColor *mainColor;
 // 是否回传原图 [可用于控制图片压系数]
 @property (nonatomic, assign) BOOL isOrigin;
@@ -41,8 +41,31 @@ MMPhotoPickerController属性介绍：
 @property (nonatomic, assign) id<MMPhotoPickerDelegate> delegate;
 ```
 
+### 代理
+
+```objc
+@protocol MMPhotoPickerDelegate <NSObject>
+
+@optional
+
+/**
+ info释义:
+ 返回的媒体数据是数组，数组单元为字典，字典中包含以下数据：
+
+ 资源类型 MMPhotoMediaType
+ 位置方向 MMPhotoLocation
+ 原始图片 MMPhotoOriginalImage
+ 视频路径 MMPhotoVideoURL
+
+ */
+- (void)mmPhotoPickerController:(MMPhotoPickerController *)picker didFinishPickingMediaWithInfo:(NSArray<NSDictionary *> *)info;
+- (void)mmPhotoPickerControllerDidCancel:(MMPhotoPickerController *)picker;
+
+@end
+
+```
   
-### 图片选择
+### 使用
 
 ```objc
 MMPhotoPickerController *mmVC = [[MMPhotoPickerController alloc] init];
@@ -75,9 +98,11 @@ UINavigationController *mmNav = [[UINavigationController alloc] initWithRootView
 MMPhotoUtil类中：
 
 // 图片
-+ (void)writeImageToPhotoAlbum:(UIImage *)image;
++ (void)writeImageToPhotoAlbum:(UIImage *)image
+             completionHandler:(void(^)(BOOL success))completionHandler;
 // 视频
-+ (void)writeVideoToPhotoAlbum:(NSURL *)videoURL;
++ (void)writeVideoToPhotoAlbum:(NSURL *)videoURL
+             completionHandler:(void(^)(BOOL success))completionHandler;
 ```
 
 ## 注意
@@ -85,7 +110,7 @@ MMPhotoUtil类中：
 1. 需要在Info.plist中添加隐私授权：`Privacy - Photo Library Usage Description`；
 2. 如果相册名称需要根据手机语言环境显示相应语言，需要在Info.plist中设置`Localized resources can be mixed` 为 `YES`。
 
-## END
+## 后记
 
 如有问题，欢迎给我[留言](https://github.com/CheeryLau/MMPhotoPicker/issues)，如果这个工具对你有些帮助，请给我一个star、watch。O(∩_∩)O谢谢
 
