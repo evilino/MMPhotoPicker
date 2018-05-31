@@ -7,7 +7,7 @@
 //
 
 #import "MMPhotoCropController.h"
-#import "UIView+Geometry.h"
+#import "MMPhotoPickerConst.h"
 
 @interface MMPhotoCropController ()
 
@@ -36,23 +36,20 @@
     self.title = @"图片裁剪";
     self.view.backgroundColor = [UIColor blackColor];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"确定" style:UIBarButtonItemStylePlain target:self action:@selector(rightBarItemAction)];
-    
     // 添加视图
     [self.view addSubview:self.imageView];
     [self.view addSubview:self.overlayView];
-    
     // 添加手势
     UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchGestureAction:)];
     [self.view addGestureRecognizer:pinch];
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureAction:)];
     [self.view addGestureRecognizer:pan];
-    
     // 赋值
     if (_imageCropSize.width * _imageCropSize.height == 0) {
         _imageCropSize = CGSizeMake(self.view.width, self.view.width);
     }
     _limitRatio = 3.f;
-    _cropFrame = CGRectMake(0, (self.view.height-64-_imageCropSize.height)/2, _imageCropSize.width, _imageCropSize.height);
+    _cropFrame = CGRectMake(0, (self.view.height-kTopBarHeight-_imageCropSize.height)/2, _imageCropSize.width, _imageCropSize.height);
     CGFloat oriWidth = _cropFrame.size.width;
     CGFloat oriHeight = oriWidth * _originalImage.size.height / _originalImage.size.width;
     CGFloat oriX = _cropFrame.origin.x + (_cropFrame.size.width - oriWidth) / 2;
@@ -62,7 +59,6 @@
     _largeFrame = CGRectMake(0, 0, _limitRatio * _oldFrame.size.width, _limitRatio * _oldFrame.size.height);
     self.imageView.frame = _oldFrame;
     self.imageView.image = _originalImage;
-    
     // 裁剪区
     [self overlayClipping];
 }
@@ -234,7 +230,7 @@
     return smallImage;
 }
 
-#pragma mark - 内存
+#pragma mark - 内存警告
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];

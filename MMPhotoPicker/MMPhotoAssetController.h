@@ -10,12 +10,12 @@
 #import <UIKit/UIKit.h>
 #import "MMPhotoPickerController.h"
 
-//#### MMPhotoAssetController
+#pragma mark - ################## MMPhotoAssetController
 @interface MMPhotoAssetController : UIViewController
 
 // 所选相册
 @property (nonatomic, strong) MMPhotoAlbum *photoAlbum;
-// 主色调[默认蓝色]
+// 主色调[默认红色]
 @property (nonatomic, strong) UIColor *mainColor;
 // 是否显示原图选项[默认NO]
 @property (nonatomic, assign) BOOL showOriginImageOption;
@@ -33,14 +33,20 @@
 @end
 
 
-//#### MMPHAsset
-#pragma mark - MMPHAsset
-
+#pragma mark - ################## MMPHAsset
 @interface MMPHAsset : NSObject
 
 // 资源
 @property (nonatomic,strong) PHAsset *asset;
 // 是否已选择
 @property (nonatomic,assign) BOOL isSelected;
+
+@end
+
+#pragma mark - ################## MMPHAsset
+
+@interface MMPHAssetCell : UICollectionViewCell
+
+@property (nonatomic,strong) PHAsset *asset;
 
 @end

@@ -20,21 +20,25 @@
  */
 + (BOOL)isPhotoAlbumPermit;
 
-
 /**
- 保存图片到自定义相册
+  保存图片到自定义相册
 
  @param image 图片
+ @param completionHandler 保存成功与否
  */
-+ (void)writeImageToPhotoAlbum:(UIImage *)image;
++ (void)writeImageToPhotoAlbum:(UIImage *)image
+             completionHandler:(void(^)(BOOL success))completionHandler;
 
 
 /**
  保存视频到自定义相册
 
  @param videoURL 视频路径URL
+ @param completionHandler 保存成功与否
  */
-+ (void)writeVideoToPhotoAlbum:(NSURL *)videoURL;
++ (void)writeVideoToPhotoAlbum:(NSURL *)videoURL
+             completionHandler:(void(^)(BOOL success))completionHandler;
+
 
 /**
  获取指定相册中照片

@@ -23,8 +23,6 @@
 		8BFCD9471FB550E200C603E7 /* MMPhotoAssetController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BFCD9461FB550E200C603E7 /* MMPhotoAssetController.m */; };
 		8BFCD9491FB551C000C603E7 /* default_bar@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8BFCD9481FB551C000C603E7 /* default_bar@2x.png */; };
 		8BFCD94C1FB5593C00C603E7 /* MMPhotoUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BFCD94B1FB5593C00C603E7 /* MMPhotoUtil.m */; };
-		8BFCD94F1FB5779100C603E7 /* MMPhotoAlbumCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BFCD94E1FB5779100C603E7 /* MMPhotoAlbumCell.m */; };
-		8BFCD9521FB577F900C603E7 /* MMPhotoAssetCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BFCD9511FB577F900C603E7 /* MMPhotoAssetCell.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,10 +53,6 @@
 		8BFCD9481FB551C000C603E7 /* default_bar@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "default_bar@2x.png"; sourceTree = "<group>"; };
 		8BFCD94A1FB5593C00C603E7 /* MMPhotoUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMPhotoUtil.h; sourceTree = "<group>"; };
 		8BFCD94B1FB5593C00C603E7 /* MMPhotoUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMPhotoUtil.m; sourceTree = "<group>"; };
-		8BFCD94D1FB5779100C603E7 /* MMPhotoAlbumCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMPhotoAlbumCell.h; sourceTree = "<group>"; };
-		8BFCD94E1FB5779100C603E7 /* MMPhotoAlbumCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMPhotoAlbumCell.m; sourceTree = "<group>"; };
-		8BFCD9501FB577F900C603E7 /* MMPhotoAssetCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMPhotoAssetCell.h; sourceTree = "<group>"; };
-		8BFCD9511FB577F900C603E7 /* MMPhotoAssetCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMPhotoAssetCell.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,10 +121,6 @@
 				8BFCD9391FB54BA100C603E7 /* MMPhotoPreviewController.m */,
 				8BFCD9351FB54B7400C603E7 /* MMPhotoCropController.h */,
 				8BFCD9361FB54B7400C603E7 /* MMPhotoCropController.m */,
-				8BFCD94D1FB5779100C603E7 /* MMPhotoAlbumCell.h */,
-				8BFCD94E1FB5779100C603E7 /* MMPhotoAlbumCell.m */,
-				8BFCD9501FB577F900C603E7 /* MMPhotoAssetCell.h */,
-				8BFCD9511FB577F900C603E7 /* MMPhotoAssetCell.m */,
 				8BFCD92E1FB548FA00C603E7 /* UIView+Geometry.h */,
 				8BFCD92F1FB548FA00C603E7 /* UIView+Geometry.m */,
 				8BFCD94A1FB5593C00C603E7 /* MMPhotoUtil.h */,
@@ -223,10 +213,8 @@
 				8BFCD91C1FB548E600C603E7 /* ViewController.m in Sources */,
 				8BFCD9371FB54B7400C603E7 /* MMPhotoCropController.m in Sources */,
 				8BFCD9191FB548E600C603E7 /* AppDelegate.m in Sources */,
-				8BFCD94F1FB5779100C603E7 /* MMPhotoAlbumCell.m in Sources */,
 				8BFCD9301FB548FA00C603E7 /* MMPhotoPickerController.m in Sources */,
 				8BFCD9161FB548E600C603E7 /* main.m in Sources */,
-				8BFCD9521FB577F900C603E7 /* MMPhotoAssetCell.m in Sources */,
 				8BFCD9471FB550E200C603E7 /* MMPhotoAssetController.m in Sources */,
 				8BFCD93A1FB54BA100C603E7 /* MMPhotoPreviewController.m in Sources */,
 			);

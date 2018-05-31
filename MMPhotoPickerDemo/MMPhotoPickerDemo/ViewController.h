@@ -10,6 +10,10 @@
 
 @interface ViewController : UIViewController
 
-
 @end
 
+@interface PhotoCell : UICollectionViewCell
+
+@property (nonatomic,strong) UIImage *image;
+
+@end

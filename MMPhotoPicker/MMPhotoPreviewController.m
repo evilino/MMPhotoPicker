@@ -47,6 +47,7 @@
 #pragma mark - 设置UI
 - (void)setUpUI
 {
+    // 滚动视图
     _scrollView = [[UIScrollView alloc] initWithFrame:self.view.bounds];
     _scrollView.delegate = self;
     _scrollView.scrollEnabled = YES;
@@ -54,39 +55,46 @@
     _scrollView.backgroundColor = [UIColor clearColor];
     _scrollView.showsHorizontalScrollIndicator = NO;
     _scrollView.showsVerticalScrollIndicator = NO;
+    if (@available(iOS 11.0, *)) {
+        _scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    }
     [self.view addSubview:_scrollView];
     
-    _titleView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, 64)];
+    CGFloat top = 20;
+    CGFloat topH = 64;
+    if (kDeviceIsIphoneX) {
+        top = kStatusHeight;
+        topH = kTopBarHeight;
+    }
+    _titleView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, topH)];
     _titleView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
     [self.view addSubview:_titleView];
-    
+    // 返回按钮
     UIImage *image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_back")];
-    UIButton *backBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, _titleView.height, _titleView.height)];
+    UIButton *backBtn = [[UIButton alloc] initWithFrame:CGRectMake(10, top, kNavHeight, kNavHeight)];
     [backBtn setImage:image forState:UIControlStateNormal];
-    [backBtn setImageEdgeInsets:UIEdgeInsetsMake((_titleView.height-image.size.height)/2, 0, (_titleView.height-image.size.height)/2, 0)];
+    [backBtn setImageEdgeInsets:UIEdgeInsetsMake((kNavHeight-image.size.height)/2, 0, (kNavHeight-image.size.height)/2, 0)];
     [backBtn addTarget:self action:@selector(backAction) forControlEvents:UIControlEventTouchUpInside];
     [_titleView addSubview:backBtn];
-    
-    _titleLab = [[UILabel alloc] initWithFrame:CGRectMake((_titleView.width-200)/2, 0, 200, _titleView.height)];
+    // 顺序Label
+    _titleLab = [[UILabel alloc] initWithFrame:CGRectMake((_titleView.width-200)/2, top, 200, kNavHeight)];
     _titleLab.font = [UIFont boldSystemFontOfSize:19.0];
     _titleLab.textAlignment = NSTextAlignmentCenter;
     _titleLab.textColor = [UIColor whiteColor];
     _titleLab.text = [NSString stringWithFormat:@"1/%d",(int)[self.assetArray count]];
     [_titleView addSubview:_titleLab];
-    
+    // 删除按钮
     image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_delete")];
-    UIButton *delBtn = [[UIButton alloc]initWithFrame:CGRectMake(_titleView.width-_titleView.height, 0, _titleView.height, _titleView.height)];
+    UIButton *delBtn = [[UIButton alloc]initWithFrame:CGRectMake(_titleView.width-kNavHeight, top, kNavHeight, kNavHeight)];
     [delBtn setImage:image forState:UIControlStateNormal];
-    [delBtn setImageEdgeInsets:UIEdgeInsetsMake((_titleView.height-image.size.height)/2, 0, (_titleView.height-image.size.height)/2, 0)];
+    [delBtn setImageEdgeInsets:UIEdgeInsetsMake((kNavHeight-image.size.height)/2, 0, (kNavHeight-image.size.height)/2, 0)];
     [delBtn addTarget:self action:@selector(deleteAction) forControlEvents:UIControlEventTouchUpInside];
     [_titleView addSubview:delBtn];
-    
-    //双击
+    // 双击
     UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapGestureCallback:)];
     doubleTap.numberOfTapsRequired = 2;
     [_scrollView addGestureRecognizer:doubleTap];
-    
-    //单击
+    // 单击
     UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTapGestureCallback:)];
     [singleTap requireGestureRecognizerToFail:doubleTap];
     [_scrollView addGestureRecognizer:singleTap];
@@ -129,19 +137,19 @@
 
 - (void)deleteAction
 {
-    //1.移除重新加载
+    // 移除重新加载
     PHAsset *asset = [self.assetArray objectAtIndex:_index];
     [self.assetArray removeObjectAtIndex:_index];
     [self loadImage];
-    //2.更新索引
+    // 更新索引
     CGFloat pageWidth = _scrollView.frame.size.width;
     _index = floor((_scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
     _titleLab.text = [NSString stringWithFormat:@"%ld/%ld",(long)_index+1,(long)[self.assetArray count]];
-    //3.block
+    // block
     if (self.photoDeleteBlock) {
         self.photoDeleteBlock(asset);
     }
-    //4.返回
+    // 返回
     if (![self.assetArray count]) {
         [self backAction];
     }

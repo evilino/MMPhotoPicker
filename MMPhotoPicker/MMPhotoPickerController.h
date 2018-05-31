@@ -11,10 +11,12 @@
 #import <Photos/Photos.h>
 #import "MMPhotoPickerConst.h"
 
+#pragma mark - ################## MMPhotoPickerController
+
 @protocol MMPhotoPickerDelegate;
 @interface MMPhotoPickerController : UIViewController
 
-// 主色调[默认蓝色]
+// 主色调[默认红色]
 @property (nonatomic, strong) UIColor *mainColor;
 // 是否回传原图 [可用于控制图片压系数]
 @property (nonatomic, assign) BOOL isOrigin;
@@ -38,12 +40,23 @@
 @protocol MMPhotoPickerDelegate <NSObject>
 
 @optional
-- (void)mmPhotoPickerController:(MMPhotoPickerController *)picker didFinishPickingMediaWithInfo:(NSArray *)info;
+
+/**
+ info释义:
+ 返回的媒体数据是数组，数组单位为字典，字典中包含以下数据：
+
+ 资源类型 MMPhotoMediaType
+ 位置方向 MMPhotoLocation
+ 原始图片 MMPhotoOriginalImage
+ 视频路径 MMPhotoVideoURL
+
+ */
+- (void)mmPhotoPickerController:(MMPhotoPickerController *)picker didFinishPickingMediaWithInfo:(NSArray<NSDictionary *> *)info;
 - (void)mmPhotoPickerControllerDidCancel:(MMPhotoPickerController *)picker;
 
 @end
 
-
+#pragma mark - ################## MMPhotoAlbum
 @interface MMPhotoAlbum : NSObject
 
 // 相册名称
@@ -55,5 +68,9 @@
 // 相册
 @property (nonatomic,strong) PHAssetCollection *collection;
 
+@end
+
+#pragma mark - ################## MMPhotoAlbumCell
+@interface MMPhotoAlbumCell : UITableViewCell
 
 @end

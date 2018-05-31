@@ -24,7 +24,7 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
 }
 
 // 保存图片到自定义相册
-+ (void)writeImageToPhotoAlbum:(UIImage *)image
++ (void)writeImageToPhotoAlbum:(UIImage *)image completionHandler:(void(^)(BOOL success))completionHandler
 {
     PHAuthorizationStatus oldStatus = [PHPhotoLibrary authorizationStatus];
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
@@ -61,6 +61,7 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
                     } completionHandler:^(BOOL success, NSError * _Nullable error) {
                         if (error) {
                             NSLog(@"保存至'所有图片'失败");
+                            if (completionHandler) completionHandler(NO);
                             return ;
                         }
                         [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
@@ -73,6 +74,7 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
                             if (error) {
                                 NSLog(@"保存'自定义相册'失败");
                             }
+                            if (completionHandler) completionHandler(success);
                         }];
                     }];
                     break;
@@ -99,7 +101,7 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
 }
 
 // 保存视频到自定义相册
-+ (void)writeVideoToPhotoAlbum:(NSURL *)videoURL
++ (void)writeVideoToPhotoAlbum:(NSURL *)videoURL completionHandler:(void(^)(BOOL success))completionHandler
 {
     PHAuthorizationStatus oldStatus = [PHPhotoLibrary authorizationStatus];
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
@@ -137,6 +139,7 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
                     } completionHandler:^(BOOL success, NSError * _Nullable error) {
                         if (error) {
                             NSLog(@"保存至'所有图片'失败");
+                            if (completionHandler) completionHandler(NO);
                             return ;
                         }
                         [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
@@ -149,6 +152,7 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
                             if (error) {
                                 NSLog(@"保存'自定义相册'失败");
                             }
+                            if (completionHandler) completionHandler(success);
                         }];
                     }];
                     

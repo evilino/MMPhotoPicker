@@ -7,18 +7,32 @@
 //
 
 #import "MMPhotoPickerController.h"
-#import "MMPhotoAlbumCell.h"
 #import "MMPhotoAssetController.h"
 
+#pragma mark - ################## MMPhotoPickerController
 @interface MMPhotoPickerController ()<UITableViewDelegate,UITableViewDataSource,UIAlertViewDelegate>
 
-@property (strong, nonatomic) UITableView *tableView;
-@property (strong, nonatomic) NSMutableArray<MMPhotoAlbum *> *photoAlbums;
-@property (strong, nonatomic) MMPhotoAlbum *selectPhotoAlbum;
+@property (nonatomic,strong) UITableView *tableView;
+@property (nonatomic,strong) NSMutableArray<MMPhotoAlbum *> *photoAlbums;
+@property (nonatomic,strong) MMPhotoAlbum *selectPhotoAlbum;
 
 @end
 
 @implementation MMPhotoPickerController
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _isOrigin = NO;
+        _cropImageOption = NO;
+        _singleImageOption = NO;
+        _showOriginImageOption = NO;
+        _mainColor = kMainColor;
+        _maximumNumberOfImage = 9;
+    }
+    return self;
+}
 
 - (void)viewDidLoad
 {
@@ -36,12 +50,10 @@
         [alert show];
         return;
     }
-
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"取消" style:UIBarButtonItemStylePlain target:self action:@selector(barButtonItemAction:)];
     [self.view addSubview:self.tableView];
     
     self.photoAlbums = [[NSMutableArray alloc] init];
-    
     // 获取智能相册
     PHFetchResult *smartAlbums = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
     [smartAlbums enumerateObjectsUsingBlock:^(PHAssetCollection * _Nonnull collection, NSUInteger idx, BOOL *stop) {
@@ -96,7 +108,6 @@
         }
     }];
     [self.tableView reloadData];
-    
     // 跳转
     [self pushAlbumByPhotoAlbum:_selectPhotoAlbum animated:NO];
 }
@@ -105,7 +116,7 @@
 - (UITableView *)tableView
 {
     if (!_tableView) {
-        _tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height-64) style:UITableViewStyleGrouped];
+        _tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height-kTopBarHeight) style:UITableViewStyleGrouped];
         _tableView.delegate = self;
         _tableView.dataSource = self;
         _tableView.rowHeight = kRowHeight;
@@ -113,6 +124,12 @@
         _tableView.backgroundColor = [UIColor clearColor];
         _tableView.separatorColor = [[UIColor lightGrayColor] colorWithAlphaComponent:0.5];
         _tableView.tableFooterView = [UIView new];
+        _tableView.estimatedRowHeight = 0;
+        _tableView.estimatedSectionHeaderHeight = 0;
+        _tableView.estimatedSectionFooterHeight = 0;
+        if (@available(iOS 11.0, *)) {
+            _tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
     }
     return _tableView;
 }
@@ -232,9 +249,23 @@
 
 @end
 
-
-#pragma mark - MMPhotoAlbum
-
+#pragma mark - ################## MMPhotoAlbum
 @implementation MMPhotoAlbum
+
+@end
+
+#pragma mark - ################## MMPhotoAlbumCell
+@implementation MMPhotoAlbumCell
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    self.imageView.contentMode = UIViewContentModeScaleAspectFill;
+    self.imageView.contentScaleFactor = [UIScreen mainScreen].scale;
+    self.imageView.clipsToBounds = YES;
+    self.imageView.frame = CGRectMake(0, 0, kRowHeight, kRowHeight);
+    self.textLabel.frame = CGRectMake(self.imageView.right+10, 0, self.width-kRowHeight-40, kRowHeight);
+    self.separatorInset = UIEdgeInsetsZero;
+}
 
 @end

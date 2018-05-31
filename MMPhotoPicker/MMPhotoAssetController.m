@@ -7,12 +7,11 @@
 //
 
 #import "MMPhotoAssetController.h"
-#import "MMPhotoAssetCell.h"
 #import "MMPhotoPreviewController.h"
 #import "MMPhotoCropController.h"
 
-//#### MMPhotoAssetController
-static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
+#pragma mark - ################## MMPhotoAssetController
+static NSString *const CellIdentifier = @"MMPHAssetCell";
 
 @interface MMPhotoAssetController ()<UICollectionViewDelegate,UICollectionViewDataSource>
 
@@ -26,12 +25,26 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
 @property (nonatomic,strong) UIButton *finishBtn;
 @property (nonatomic,strong) UILabel *numberLab;
 
-//是否回传原图[可用于控制图片压系数]
+// 是否回传原图[可用于控制图片压系数]
 @property (nonatomic, assign) BOOL isOrigin;
 
 @end
 
 @implementation MMPhotoAssetController
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _isOrigin = NO;
+        _cropImageOption = NO;
+        _singleImageOption = NO;
+        _showOriginImageOption = NO;
+        _mainColor = kMainColor;
+        _maximumNumberOfImage = 9;
+    }
+    return self;
+}
 
 - (void)viewDidLoad
 {
@@ -50,7 +63,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
     }
     [self.view addSubview:self.collectionView];
     if (!_cropImageOption && !_singleImageOption) {
-        self.collectionView.height = self.view.height-64-kBottomHeight;
+        self.collectionView.height = self.view.height-kTopBarHeight-kBottomHeight;
         // 是否显示原图选项
         _originBtn.hidden = !self.showOriginImageOption;
         [self.view addSubview:self.bottomView];
@@ -78,12 +91,12 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
 {
     if (!_collectionView) {
         UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
-        _collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height-64) collectionViewLayout:flowLayout];
+        _collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height-kTopBarHeight) collectionViewLayout:flowLayout];
         _collectionView.backgroundColor = [UIColor clearColor];
         _collectionView.delegate = self;
         _collectionView.dataSource = self;
         _collectionView.scrollEnabled = YES;
-        [_collectionView registerClass:[MMPhotoAssetCell class] forCellWithReuseIdentifier:CellIdentifier];
+        [_collectionView registerClass:[MMPHAssetCell class] forCellWithReuseIdentifier:CellIdentifier];
     }
     return _collectionView;
 }
@@ -96,6 +109,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
         _bottomView.userInteractionEnabled = NO;
         _bottomView.alpha = 0.5;
         
+        CGFloat btHeight = 50.0f;
         // 上边框
         CALayer *layer = [CALayer layer];
         layer.frame = CGRectMake(0, 0, _bottomView.width, 0.5);
@@ -103,7 +117,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
         [_bottomView.layer addSublayer:layer];
         
         // 预览
-        _previewBtn = [[UIButton alloc] initWithFrame:CGRectMake(10, 0, 50, kBottomHeight)];
+        _previewBtn = [[UIButton alloc] initWithFrame:CGRectMake(10, 0, 50, btHeight)];
         _previewBtn.tag = 100;
         [_previewBtn.titleLabel setFont:[UIFont systemFontOfSize:16.0]];
         [_previewBtn setTitle:@"预览" forState:UIControlStateNormal];
@@ -111,20 +125,19 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
         [_previewBtn addTarget:self action:@selector(buttonAction:) forControlEvents:UIControlEventTouchUpInside];
         [_bottomView addSubview:_previewBtn];
         
-        //原图
-        _originBtn = [[UIButton alloc] initWithFrame:CGRectMake(_previewBtn.right+10, 0, 90, kBottomHeight)];
+        // 原图
+        _originBtn = [[UIButton alloc] initWithFrame:CGRectMake(_previewBtn.right+10, 0, 90, btHeight)];
         _originBtn.tag = 101;
         [_originBtn.titleLabel setFont:[UIFont systemFontOfSize:16.0]];
         [_originBtn setTitle:@"原图" forState:UIControlStateNormal];
         [_originBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [_originBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 5, 0, 0)];
-        [_originBtn setImageEdgeInsets:UIEdgeInsetsMake(12, 0, 12, 70)];
         [_originBtn setImage:[UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_mark")] forState:UIControlStateNormal];
         [_originBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
         [_originBtn addTarget:self action:@selector(buttonAction:) forControlEvents:UIControlEventTouchUpInside];
         [_bottomView addSubview:_originBtn];
         
-        _numberLab = [[UILabel alloc] initWithFrame:CGRectMake(self.view.width-70, (kBottomHeight-20)/2, 20, 20)];
+        _numberLab = [[UILabel alloc] initWithFrame:CGRectMake(self.view.width-70, (btHeight-20)/2, 20, 20)];
         _numberLab.backgroundColor = _mainColor;
         _numberLab.layer.cornerRadius = _numberLab.frame.size.height/2;
         _numberLab.layer.masksToBounds = YES;
@@ -135,7 +148,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
         [_bottomView addSubview:_numberLab];
         _numberLab.hidden = YES;
         
-        _finishBtn = [[UIButton alloc] initWithFrame:CGRectMake(self.view.width-60, 0, 60, kBottomHeight)];
+        _finishBtn = [[UIButton alloc] initWithFrame:CGRectMake(self.view.width-60, 0, 60, btHeight)];
         _finishBtn.tag = 102;
         [_finishBtn.titleLabel setFont:[UIFont systemFontOfSize:16.0]];
         [_finishBtn setTitle:@"确定" forState:UIControlStateNormal];
@@ -161,7 +174,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
 
 - (void)buttonAction:(UIButton *)btn
 {
-    if (btn.tag == 100) //预览
+    if (btn.tag == 100) // 预览
     {
         MMPhotoPreviewController *previewVC = [[MMPhotoPreviewController alloc] init];
         previewVC.assetArray = self.selectedAssetArray;
@@ -179,7 +192,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
          }];
         [self.navigationController pushViewController:previewVC animated:YES];
     }
-    else if (btn.tag == 101)  //原图
+    else if (btn.tag == 101)  // 原图
     {
         if (_isOrigin) {
             [_originBtn setImage:[UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_mark")] forState:UIControlStateNormal];
@@ -210,7 +223,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
                 [dictionary setObject:image forKey:MMPhotoOriginalImage];
                 // 加入数组
                 [result addObject:dictionary];
-                //回传
+                // 回传
                 if (i == totalNumber-1) {
                     self.completion(result, _isOrigin, NO);
                 }
@@ -274,7 +287,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
 {
     MMPHAsset *mmAsset = [self.mmPHAssetArray objectAtIndex:indexPath.row];
     // 赋值
-    MMPhotoAssetCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:CellIdentifier forIndexPath:indexPath];
+    MMPHAssetCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:CellIdentifier forIndexPath:indexPath];
     cell.asset = mmAsset.asset;
     cell.selected = mmAsset.isSelected;
     return cell;
@@ -286,7 +299,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
     [collectionView deselectItemAtIndexPath:indexPath animated:YES];
     MMPHAsset *mmAsset = [self.mmPHAssetArray objectAtIndex:indexPath.row];
     PHAsset *asset = mmAsset.asset;
-    //## 图片裁剪
+    // 图片裁剪
     if (_cropImageOption)
     {
         // 获取图片
@@ -314,7 +327,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
         return;
     }
     
-    //## 选择一个>>直接返回
+    // 选择一个>>直接返回
     if (_singleImageOption)
     {
         if (!self.completion) {
@@ -336,7 +349,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
         return;
     }
     
-    //## 提醒
+    // 提醒
     if (([self.selectedAssetArray count] == _maximumNumberOfImage) && !mmAsset.isSelected) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"最多可以添加%ld张图片",(long)_maximumNumberOfImage]
                                                         message:nil
@@ -358,7 +371,7 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
     [self updateUI];
 }
 
-#pragma mark -
+#pragma mark - 内存警告
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -366,8 +379,65 @@ static NSString *const CellIdentifier = @"MMPhotoAlbumCell";
 
 @end
 
-
-//#### MMPHAsset
+#pragma mark - ################## MMPHAsset
 @implementation MMPHAsset
+
+@end
+
+#pragma mark - ################## MMPHAssetCell
+@interface MMPHAssetCell ()
+
+@property (nonatomic,strong) UIImageView *imageView;
+@property (nonatomic,strong) UIImageView *overLay;
+
+@end
+
+@implementation MMPHAssetCell
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self addSubview:self.imageView];
+        [self addSubview:self.overLay];
+        self.overLay.hidden = YES;
+    }
+    return self;
+}
+
+#pragma mark - getter
+- (UIImageView *)imageView
+{
+    if (!_imageView) {
+        _imageView = [[UIImageView alloc] initWithFrame:self.bounds];
+        _imageView.layer.masksToBounds = YES;
+        _imageView.clipsToBounds = YES;
+        _imageView.contentMode = UIViewContentModeScaleAspectFill;
+        _imageView.contentScaleFactor = [[UIScreen mainScreen] scale];
+    }
+    return _imageView;
+}
+
+- (UIImageView *)overLay
+{
+    if (!_overLay) {
+        _overLay = [[UIImageView alloc] initWithFrame:self.bounds];
+        _overLay.image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_overlay")];
+    }
+    return _overLay;
+}
+
+#pragma mark - setter
+- (void)setSelected:(BOOL)selected
+{
+    self.overLay.hidden = !selected;
+}
+
+- (void)setAsset:(PHAsset *)asset
+{
+    [MMPhotoUtil getImageWithAsset:asset size:self.imageView.size completion:^(UIImage *image) {
+        self.imageView.image = image;
+    }];
+}
 
 @end
