@@ -60,12 +60,8 @@
     }
     [self.view addSubview:_scrollView];
     
-    CGFloat top = 20;
-    CGFloat topH = 64;
-    if (kDeviceIsIphoneX) {
-        top = kStatusHeight;
-        topH = kTopBarHeight;
-    }
+    CGFloat top = kStatusHeight;
+    CGFloat topH = kTopBarHeight;
     _titleView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, topH)];
     _titleView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
     [self.view addSubview:_titleView];
