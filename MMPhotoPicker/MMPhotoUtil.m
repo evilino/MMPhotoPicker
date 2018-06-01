@@ -43,11 +43,7 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
                 // 保存图片
                 __block NSString *assetId = nil;
                 [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-                    if (@available(iOS 9.0, *)) {
-                        assetId = [PHAssetCreationRequest creationRequestForAssetFromImage:image].placeholderForCreatedAsset.localIdentifier;
-                    } else {
-                        assetId = [PHAssetChangeRequest creationRequestForAssetFromImage:image].placeholderForCreatedAsset.localIdentifier;
-                    }
+                    assetId = [PHAssetChangeRequest creationRequestForAssetFromImage:image].placeholderForCreatedAsset.localIdentifier;
                 } completionHandler:^(BOOL success, NSError * _Nullable error) {
                     if (!success) {
                         NSLog(@"保存至【相机胶卷】失败");
@@ -125,11 +121,7 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
                 // 保存视频
                 __block NSString *assetId = nil;
                 [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-                    if (@available(iOS 9.0, *)) {
-                        assetId = [PHAssetCreationRequest creationRequestForAssetFromVideoAtFileURL:videoURL].placeholderForCreatedAsset.localIdentifier;
-                    } else {
-                        assetId = [PHAssetChangeRequest creationRequestForAssetFromVideoAtFileURL:videoURL].placeholderForCreatedAsset.localIdentifier;
-                    }
+                    assetId = [PHAssetChangeRequest creationRequestForAssetFromVideoAtFileURL:videoURL].placeholderForCreatedAsset.localIdentifier;
                 } completionHandler:^(BOOL success, NSError * _Nullable error) {
                     if (!success) {
                         NSLog(@"保存至【相机胶卷】失败");
