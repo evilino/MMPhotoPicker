@@ -12,14 +12,6 @@
 
 @interface MMPhotoUtil : NSObject
 
-
-/**
-  是否开启了相册权限
-
- @return YES/NO
- */
-+ (BOOL)isPhotoAlbumPermit;
-
 /**
   保存图片到自定义相册
 

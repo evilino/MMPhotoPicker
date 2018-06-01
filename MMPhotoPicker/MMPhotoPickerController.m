@@ -20,6 +20,7 @@
 
 @implementation MMPhotoPickerController
 
+#pragma mark - 初始化
 - (instancetype)init
 {
     self = [super init];
@@ -39,20 +40,40 @@
     [super viewDidLoad];
     self.title = @"照片";
     self.view.backgroundColor = RGBColor(240.0, 240.0, 240.0, 1.0);
-    
-    // 相册权限
-    if (![MMPhotoUtil isPhotoAlbumPermit]) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
-                                                        message:@"请在设置>隐私>照片中开启权限"
-                                                       delegate:self
-                                              cancelButtonTitle:@"知道了"
-                                              otherButtonTitles:nil, nil];
-        [alert show];
-        return;
-    }
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"取消" style:UIBarButtonItemStylePlain target:self action:@selector(barButtonItemAction:)];
     [self.view addSubview:self.tableView];
-    
+    // 相册权限
+    PHAuthorizationStatus oldStatus = [PHPhotoLibrary authorizationStatus];
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            switch (status) {
+                case PHAuthorizationStatusAuthorized: { // 权限打开
+                    [self loadAlbumData]; // 加载相册
+                    break;
+                }
+                case PHAuthorizationStatusDenied: // 权限拒绝
+                case PHAuthorizationStatusRestricted: { // 权限受限
+                    if (oldStatus == PHAuthorizationStatusNotDetermined) {
+                        [self barButtonItemAction:nil]; // 返回
+                        return;
+                    }
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
+                                                                    message:@"请在设置>隐私>照片中开启权限"
+                                                                   delegate:self
+                                                          cancelButtonTitle:@"知道了"
+                                                          otherButtonTitles:nil, nil];
+                    [alert show];
+                    break;
+                }
+                default:
+                    break;
+            }
+        });
+    }];
+}
+
+- (void)loadAlbumData
+{
     self.photoAlbums = [[NSMutableArray alloc] init];
     // 获取智能相册
     PHFetchResult *smartAlbums = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
@@ -175,7 +196,6 @@
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     cell.selectionStyle = UITableViewCellSelectionStyleGray;
     cell.textLabel.textColor = [UIColor grayColor];
-
     // 封面
     MMPhotoAlbum *album = [self.photoAlbums objectAtIndex:indexPath.row];
     if (album.coverAsset) {
@@ -185,7 +205,6 @@
     } else {
         cell.imageView.image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_empty")];
     }
-
     // 数量
     NSString *text = [NSString stringWithFormat:@"%@  (%ld)",album.name, (long)album.assetCount];
     NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:text];
@@ -199,7 +218,6 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    
     // 跳转
     MMPhotoAlbum *photoAlbum = [self.photoAlbums objectAtIndex:indexPath.row];
     [self pushAlbumByPhotoAlbum:photoAlbum animated:YES];
@@ -220,13 +238,13 @@
     __weak typeof(self) weakSelf = self;
     [controller setCompletion:^(NSArray *info, BOOL isOrigin, BOOL isCancel){
         weakSelf.isOrigin = isOrigin;
-        if (isCancel) { //取消
+        if (isCancel) { // 取消
             if ([weakSelf.delegate respondsToSelector:@selector(mmPhotoPickerControllerDidCancel:)]) {
                 [weakSelf.delegate mmPhotoPickerControllerDidCancel:weakSelf];
             } else {
                 [weakSelf dismissViewControllerAnimated:YES completion:nil];
             }
-        } else { //确认选择
+        } else { // 确认选择
             if ([weakSelf.delegate respondsToSelector:@selector(mmPhotoPickerController:didFinishPickingMediaWithInfo:)]) {
                 [weakSelf.delegate mmPhotoPickerController:weakSelf didFinishPickingMediaWithInfo:info];
             }
@@ -241,7 +259,7 @@
     [self barButtonItemAction:nil];
 }
 
-#pragma mark -
+#pragma mark - 内存警告
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];

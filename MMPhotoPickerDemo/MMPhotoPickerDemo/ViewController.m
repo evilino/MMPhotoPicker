@@ -67,18 +67,16 @@ static NSString *const CellIdentifier = @"PhotoCell";
     [MMPhotoUtil writeImageToPhotoAlbum:image completionHandler:^(BOOL success) {
         NSString *message = nil;
         if (success) {
-            message = @"保存成功";
+            message = @"图片保存成功";
         } else {
-            message = @"保存出错";
+            message = @"图片保存出错";
         }
-        dispatch_async(dispatch_get_main_queue(), ^{
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@""
-                                                            message:message
-                                                           delegate:nil
-                                                  cancelButtonTitle:@"知道了"
-                                                  otherButtonTitles:nil, nil];
-            [alert show];
-        });
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:message
+                                                        message:nil
+                                                       delegate:nil
+                                              cancelButtonTitle:@"知道了"
+                                              otherButtonTitles:nil, nil];
+        [alert show];
     }];
 }
 

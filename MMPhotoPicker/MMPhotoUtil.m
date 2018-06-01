@@ -12,91 +12,81 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
 
 @implementation MMPhotoUtil
 
-// 是否开启了相册权限
-+ (BOOL)isPhotoAlbumPermit
-{
-    __block BOOL isPermit = YES;
-    PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
-    if (status == PHAuthorizationStatusRestricted || status == PHAuthorizationStatusDenied) {
-        isPermit = NO;
-    }
-    return isPermit;
-}
-
 // 保存图片到自定义相册
 + (void)writeImageToPhotoAlbum:(UIImage *)image completionHandler:(void(^)(BOOL success))completionHandler
 {
     PHAuthorizationStatus oldStatus = [PHPhotoLibrary authorizationStatus];
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            switch (status)
+        switch (status)
+        {
+            case PHAuthorizationStatusAuthorized: // 权限打开
             {
-                case PHAuthorizationStatusAuthorized: //权限打开
-                {
-                    // 获取所有自定义相册
-                    PHFetchResult *collections = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum
-                                                                                          subtype:PHAssetCollectionSubtypeAlbumRegular
-                                                                                          options:nil];
-                    // 筛选[如果已经存在，则无需再创建]
-                    __block PHAssetCollection *createCollection = nil;
-                    __block NSString *collectionID = nil;
-                    for (PHAssetCollection *collection in collections)  {
-                        if ([collection.localizedTitle isEqualToString:kPhotoAlbum]) {
-                            createCollection = collection;
-                            break;
-                        }
+                // 获取所有自定义相册
+                PHFetchResult *collections = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
+                // 筛选[如果已经存在，则无需再创建]
+                __block PHAssetCollection *createCollection = nil;
+                __block NSString *collectionID = nil;
+                for (PHAssetCollection *collection in collections)  {
+                    if ([collection.localizedTitle isEqualToString:kPhotoAlbum]) {
+                        createCollection = collection;
+                        break;
                     }
-                    if (!createCollection) {
-                        // 创建相册
-                        [[PHPhotoLibrary sharedPhotoLibrary] performChangesAndWait:^{
-                            collectionID = [PHAssetCollectionChangeRequest creationRequestForAssetCollectionWithTitle:kPhotoAlbum].placeholderForCreatedAssetCollection.localIdentifier;
-                        } error:nil];
-                        // 取出
-                        createCollection = [PHAssetCollection fetchAssetCollectionsWithLocalIdentifiers:@[collectionID] options:nil].firstObject;
-                    }
-                    // 保存图片
-                    __block NSString *assetId = nil;
-                    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-                        assetId = [PHAssetCreationRequest creationRequestForAssetFromImage:image].placeholderForCreatedAsset.localIdentifier;
-                    } completionHandler:^(BOOL success, NSError * _Nullable error) {
-                        if (error) {
-                            NSLog(@"保存至'所有图片'失败");
-                            if (completionHandler) completionHandler(NO);
-                            return ;
-                        }
-                        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-                            PHAssetCollectionChangeRequest *request = [PHAssetCollectionChangeRequest changeRequestForAssetCollection:createCollection];
-                            PHAsset *asset = [PHAsset fetchAssetsWithLocalIdentifiers:@[assetId] options:nil].firstObject;
-                            // 添加图片到相册中
-                            [request addAssets:@[asset]];
-                            
-                        } completionHandler:^(BOOL success, NSError * _Nullable error) {
-                            if (error) {
-                                NSLog(@"保存'自定义相册'失败");
-                            }
-                            if (completionHandler) completionHandler(success);
-                        }];
-                    }];
-                    break;
                 }
-                case PHAuthorizationStatusDenied:
-                case PHAuthorizationStatusRestricted:
-                {
-                    if (oldStatus == PHAuthorizationStatusNotDetermined) {
-                        return;
+                if (!createCollection) {
+                    // 创建相册
+                    [[PHPhotoLibrary sharedPhotoLibrary] performChangesAndWait:^{
+                        collectionID = [PHAssetCollectionChangeRequest creationRequestForAssetCollectionWithTitle:kPhotoAlbum].placeholderForCreatedAssetCollection.localIdentifier;
+                    } error:nil];
+                    // 取出
+                    createCollection = [PHAssetCollection fetchAssetCollectionsWithLocalIdentifiers:@[collectionID] options:nil].firstObject;
+                }
+                // 保存图片
+                __block NSString *assetId = nil;
+                [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                    assetId = [PHAssetCreationRequest creationRequestForAssetFromImage:image].placeholderForCreatedAsset.localIdentifier;
+                } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                    if (!success) {
+                        NSLog(@"保存至【相机胶卷】失败");
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            if (completionHandler) completionHandler(NO);
+                        });
+                        return ;
                     }
+                    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                        PHAssetCollectionChangeRequest *request = [PHAssetCollectionChangeRequest changeRequestForAssetCollection:createCollection];
+                        PHAsset *asset = [PHAsset fetchAssetsWithLocalIdentifiers:@[assetId] options:nil].firstObject;
+                        // 添加图片到相册中
+                        [request addAssets:@[asset]];
+                    } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                        if (!success) {
+                            NSLog(@"保存【自定义相册】失败");
+                        }
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            if (completionHandler) completionHandler(success);
+                        });
+                    }];
+                }];
+                break;
+            }
+            case PHAuthorizationStatusDenied: // 权限拒绝
+            case PHAuthorizationStatusRestricted: // 权限受限
+            {
+                if (oldStatus == PHAuthorizationStatusNotDetermined) {
+                    return;
+                }
+                dispatch_async(dispatch_get_main_queue(), ^{
                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
                                                                     message:@"请在设置>隐私>照片中开启权限"
                                                                    delegate:nil
                                                           cancelButtonTitle:@"知道了"
                                                           otherButtonTitles:nil, nil];
                     [alert show];
-                    break;
-                }
-                default:
-                    break;
+                });
+                break;
             }
-        });
+            default:
+                break;
+        }
     }];
 }
 
@@ -105,77 +95,77 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
 {
     PHAuthorizationStatus oldStatus = [PHPhotoLibrary authorizationStatus];
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            switch (status)
+        switch (status)
+        {
+            case PHAuthorizationStatusAuthorized:// 权限打开
             {
-                case PHAuthorizationStatusAuthorized://权限打开
-                {
-                    // 获取所有自定义相册
-                    PHFetchResult *collections = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum
-                                                                                          subtype:PHAssetCollectionSubtypeAlbumRegular
-                                                                                          options:nil];
-                 
-                    // 筛选[如果已经存在，则无需再创建]
-                    __block PHAssetCollection *createCollection = nil;
-                    __block NSString *collectionID = nil;
-                    for (PHAssetCollection *collection in collections)  {
-                        if ([collection.localizedTitle isEqualToString:kPhotoAlbum]) {
-                            createCollection = collection;
-                            break;
-                        }
+                // 获取所有自定义相册
+                PHFetchResult *collections = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
+                // 筛选[如果已经存在，则无需再创建]
+                __block PHAssetCollection *createCollection = nil;
+                __block NSString *collectionID = nil;
+                for (PHAssetCollection *collection in collections)  {
+                    if ([collection.localizedTitle isEqualToString:kPhotoAlbum]) {
+                        createCollection = collection;
+                        break;
                     }
-                    if (!createCollection) {
-                        // 创建相册
-                        [[PHPhotoLibrary sharedPhotoLibrary] performChangesAndWait:^{
-                            collectionID = [PHAssetCollectionChangeRequest creationRequestForAssetCollectionWithTitle:kPhotoAlbum].placeholderForCreatedAssetCollection.localIdentifier;
-                        } error:nil];
-                        // 取出
-                        createCollection = [PHAssetCollection fetchAssetCollectionsWithLocalIdentifiers:@[collectionID] options:nil].firstObject;
-                    }
-                    // 保存视频
-                    __block NSString *assetId = nil;
-                    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-                        assetId = [PHAssetCreationRequest creationRequestForAssetFromVideoAtFileURL:videoURL].placeholderForCreatedAsset.localIdentifier;
-                    } completionHandler:^(BOOL success, NSError * _Nullable error) {
-                        if (error) {
-                            NSLog(@"保存至'所有图片'失败");
-                            if (completionHandler) completionHandler(NO);
-                            return ;
-                        }
-                        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-                            PHAssetCollectionChangeRequest *request = [PHAssetCollectionChangeRequest changeRequestForAssetCollection:createCollection];
-                            PHAsset *asset = [PHAsset fetchAssetsWithLocalIdentifiers:@[assetId] options:nil].firstObject;
-                            // 添加视频到相册中
-                            [request addAssets:@[asset]];
-                            
-                        } completionHandler:^(BOOL success, NSError * _Nullable error) {
-                            if (error) {
-                                NSLog(@"保存'自定义相册'失败");
-                            }
-                            if (completionHandler) completionHandler(success);
-                        }];
-                    }];
-                    
-                    break;
                 }
-                case PHAuthorizationStatusDenied:
-                case PHAuthorizationStatusRestricted:
-                {
-                    if (oldStatus == PHAuthorizationStatusNotDetermined) {
-                        return;
+                if (!createCollection) {
+                    // 创建相册
+                    [[PHPhotoLibrary sharedPhotoLibrary] performChangesAndWait:^{
+                        collectionID = [PHAssetCollectionChangeRequest creationRequestForAssetCollectionWithTitle:kPhotoAlbum].placeholderForCreatedAssetCollection.localIdentifier;
+                    } error:nil];
+                    // 取出
+                    createCollection = [PHAssetCollection fetchAssetCollectionsWithLocalIdentifiers:@[collectionID] options:nil].firstObject;
+                }
+                // 保存视频
+                __block NSString *assetId = nil;
+                [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                    assetId = [PHAssetCreationRequest creationRequestForAssetFromVideoAtFileURL:videoURL].placeholderForCreatedAsset.localIdentifier;
+                } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                    if (!success) {
+                        NSLog(@"保存至【相机胶卷】失败");
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            if (completionHandler) completionHandler(NO);
+                        });
+                        return ;
                     }
+                    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                        PHAssetCollectionChangeRequest *request = [PHAssetCollectionChangeRequest changeRequestForAssetCollection:createCollection];
+                        PHAsset *asset = [PHAsset fetchAssetsWithLocalIdentifiers:@[assetId] options:nil].firstObject;
+                        // 添加视频到相册中
+                        [request addAssets:@[asset]];
+                    } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                        if (!success) {
+                            NSLog(@"保存【自定义相册】失败");
+                        }
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            if (completionHandler) completionHandler(success);
+                        });
+                    }];
+                }];
+                
+                break;
+            }
+            case PHAuthorizationStatusDenied: // 权限拒绝
+            case PHAuthorizationStatusRestricted: // 权限受限
+            {
+                if (oldStatus == PHAuthorizationStatusNotDetermined) {
+                    return;
+                }
+                dispatch_async(dispatch_get_main_queue(), ^{
                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
                                                                     message:@"请在设置>隐私>照片中开启权限"
                                                                    delegate:nil
                                                           cancelButtonTitle:@"知道了"
                                                           otherButtonTitles:nil, nil];
                     [alert show];
-                    break;
-                }
-                default:
-                    break;
+                });
+                break;
             }
-        });
+            default:
+                break;
+        }
     }];
 }
 
@@ -214,7 +204,7 @@ static NSString *kPhotoAlbum = @"PhotoDemo";
     option.networkAccessAllowed = YES;
     [[PHCachingImageManager defaultManager] requestImageDataForAsset:asset options:option resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
         UIImage *image = [UIImage imageWithData:imageData];
-        if (completion)  completion(image);
+        if (completion) completion(image);
     }];
 }
 
