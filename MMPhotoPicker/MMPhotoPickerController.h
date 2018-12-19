@@ -6,6 +6,7 @@
 //  Copyright © 2017年 LEA. All rights reserved.
 //
 //  图库列表
+//
 
 #import <UIKit/UIKit.h>
 #import <Photos/Photos.h>
@@ -17,7 +18,7 @@
 @interface MMPhotoPickerController : UIViewController
 
 // 主色调[默认红色]
-@property (nonatomic, strong) UIColor *mainColor;
+@property (nonatomic, strong) UIColor * mainColor;
 // 是否回传原图 [可用于控制图片压系数]
 @property (nonatomic, assign) BOOL isOrigin;
 // 是否显示原图选项 [默认NO]
@@ -60,13 +61,13 @@
 @interface MMPhotoAlbum : NSObject
 
 // 相册名称
-@property (nonatomic,copy) NSString *name;
+@property (nonatomic, copy) NSString * name;
 // 内含图片数量
-@property (nonatomic,assign) NSInteger assetCount;
+@property (nonatomic, assign) NSInteger assetCount;
 // 封面
-@property (nonatomic,strong) PHAsset *coverAsset;
+@property (nonatomic, strong) PHAsset * coverAsset;
 // 相册
-@property (nonatomic,strong) PHAssetCollection *collection;
+@property (nonatomic, strong) PHAssetCollection * collection;
 
 @end
 

@@ -12,9 +12,9 @@
 @interface MMPhotoCropController ()
 
 // 图片显示视图
-@property (nonatomic,strong) UIImageView *imageView;
+@property (nonatomic, strong) UIImageView * imageView;
 // 蒙版
-@property (nonatomic,strong) UIView *overlayView;
+@property (nonatomic, strong) UIView * overlayView;
 // 裁剪frame
 @property (nonatomic, assign) CGRect cropFrame;
 // 记录frame
@@ -36,20 +36,23 @@
     self.title = @"图片裁剪";
     self.view.backgroundColor = [UIColor blackColor];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"确定" style:UIBarButtonItemStylePlain target:self action:@selector(rightBarItemAction)];
+   
     // 添加视图
     [self.view addSubview:self.imageView];
     [self.view addSubview:self.overlayView];
+    
     // 添加手势
-    UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchGestureAction:)];
+    UIPinchGestureRecognizer * pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchGestureAction:)];
     [self.view addGestureRecognizer:pinch];
-    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureAction:)];
+    UIPanGestureRecognizer * pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureAction:)];
     [self.view addGestureRecognizer:pan];
+    
     // 赋值
     if (_imageCropSize.width * _imageCropSize.height == 0) {
         _imageCropSize = CGSizeMake(self.view.width, self.view.width);
     }
     _limitRatio = 3.f;
-    _cropFrame = CGRectMake(0, (self.view.height-kTopBarHeight-_imageCropSize.height)/2, _imageCropSize.width, _imageCropSize.height);
+    _cropFrame = CGRectMake(0, (self.view.height-kTopHeight-_imageCropSize.height)/2, _imageCropSize.width, _imageCropSize.height);
     CGFloat oriWidth = _cropFrame.size.width;
     CGFloat oriHeight = oriWidth * _originalImage.size.height / _originalImage.size.width;
     CGFloat oriX = _cropFrame.origin.x + (_cropFrame.size.width - oriWidth) / 2;
@@ -93,7 +96,7 @@
 {
     if (!_overlayView) {
         _overlayView = [[UIView alloc] initWithFrame:self.view.bounds];
-        _overlayView.alpha = .5f;
+        _overlayView.alpha = 0.5f;
         _overlayView.userInteractionEnabled = NO;
         _overlayView.backgroundColor = [UIColor blackColor];
         _overlayView.autoresizingMask = UIViewAutoresizingFlexibleHeight |UIViewAutoresizingFlexibleWidth;
@@ -104,7 +107,7 @@
 #pragma mark - 裁剪区
 - (void)overlayClipping
 {
-    CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];
+    CAShapeLayer * maskLayer = [[CAShapeLayer alloc] init];
     CGMutablePathRef path = CGPathCreateMutable();
     // 图片高度与截取框高度保持一致
     if(_oldFrame.size.height >=  _cropFrame.size.height) {
@@ -112,7 +115,7 @@
         CGPathAddRect(path, nil, CGRectMake(_cropFrame.origin.x + _cropFrame.size.width, 0, self.overlayView.width - _cropFrame.origin.x - _cropFrame.size.width, self.overlayView.height));
         CGPathAddRect(path, nil, CGRectMake(0, 0, self.overlayView.width, _cropFrame.origin.y));
         CGPathAddRect(path, nil, CGRectMake(0, _cropFrame.origin.y + _cropFrame.size.height, self.overlayView.width, self.overlayView.height - _cropFrame.origin.y + _cropFrame.size.height));
-    } else { //重新赋值
+    } else { // 重新赋值
         _cropFrame = _oldFrame;
         CGPathAddRect(path, nil, CGRectMake(0, 0, _oldFrame.origin.x, self.overlayView.height));
         CGPathAddRect(path, nil, CGRectMake(_oldFrame.origin.x + _oldFrame.size.width, 0, self.overlayView.width - _oldFrame.origin.x - _oldFrame.size.width, self.overlayView.height));
@@ -128,7 +131,7 @@
 - (void)pinchGestureAction:(UIPinchGestureRecognizer *)pinch
 {
     // 缩放
-    UIView *view = self.imageView;
+    UIView * view = self.imageView;
     if (pinch.state == UIGestureRecognizerStateBegan || pinch.state == UIGestureRecognizerStateChanged)
     {
         view.transform = CGAffineTransformScale(view.transform, pinch.scale, pinch.scale);
@@ -140,19 +143,17 @@
         newFrame = [self handleScaleOverflow:newFrame];
         newFrame = [self handleBorderOverflow:newFrame];
         
-        __weak typeof(self) weakSelf = self;
-        [UIView animateWithDuration:0.3f
-                         animations:^{
-                             weakSelf.latestFrame = newFrame;
-                             weakSelf.imageView.frame = newFrame;
-                         }];
+        [UIView animateWithDuration:0.3f animations:^{
+            _latestFrame = newFrame;
+            self.imageView.frame = newFrame;
+        }];
     }
 }
 
 - (void)panGestureAction:(UIPanGestureRecognizer *)pan
 {
     // 拖动
-    UIView *view = self.imageView;
+    UIView * view = self.imageView;
     if (pan.state == UIGestureRecognizerStateBegan || pan.state == UIGestureRecognizerStateChanged)
     {
         CGFloat absCenterX = _cropFrame.origin.x + _cropFrame.size.width / 2;
@@ -169,12 +170,10 @@
         CGRect newFrame = self.imageView.frame;
         newFrame = [self handleBorderOverflow:newFrame];
         
-        __weak typeof(self) weakSelf = self;
-        [UIView animateWithDuration:0.3f
-                         animations:^{
-                             weakSelf.latestFrame = newFrame;
-                             weakSelf.imageView.frame = newFrame;
-                         }];
+        [UIView animateWithDuration:0.3f animations:^{
+            _latestFrame = newFrame;
+            self.imageView.frame = newFrame;
+        }];
     }
 }
 
@@ -217,6 +216,8 @@
     CGFloat w = squareFrame.size.width / scaleRatio;
     CGFloat h = squareFrame.size.height / scaleRatio;
     CGRect myImageRect = CGRectMake(x, y, w, h);
+    
+    _originalImage = [MMPhotoUtil fixOrientation:_originalImage];
     CGImageRef imageRef = _originalImage.CGImage;
     CGImageRef subImageRef = CGImageCreateWithImageInRect(imageRef, myImageRect);
     CGSize size;
@@ -225,12 +226,12 @@
     UIGraphicsBeginImageContext(size);
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextDrawImage(context, myImageRect, subImageRef);
-    UIImage* smallImage = [UIImage imageWithCGImage:subImageRef];
+    UIImage * smallImage = [UIImage imageWithCGImage:subImageRef];
     UIGraphicsEndImageContext();
     return smallImage;
 }
 
-#pragma mark - 内存警告
+#pragma mark -
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];

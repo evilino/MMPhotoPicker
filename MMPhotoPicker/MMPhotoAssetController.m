@@ -11,19 +11,19 @@
 #import "MMPhotoCropController.h"
 
 #pragma mark - ################## MMPhotoAssetController
-static NSString *const CellIdentifier = @"MMPHAssetCell";
+static NSString * const CellIdentifier = @"MMPHAssetCell";
 
-@interface MMPhotoAssetController ()<UICollectionViewDelegate,UICollectionViewDataSource>
+@interface MMPhotoAssetController () <UICollectionViewDelegate,UICollectionViewDataSource>
 
-@property (nonatomic,strong) UICollectionView *collectionView;
-@property (nonatomic,strong) NSMutableArray<MMPHAsset *> *mmPHAssetArray;
-@property (nonatomic,strong) NSMutableArray<PHAsset *> *selectedAssetArray;
+@property (nonatomic, strong) UICollectionView * collectionView;
+@property (nonatomic, strong) NSMutableArray<MMPHAsset *> * mmPHAssetArray;
+@property (nonatomic, strong) NSMutableArray<PHAsset *> * selectedAssetArray;
 
-@property (nonatomic,strong) UIView *bottomView;
-@property (nonatomic,strong) UIButton *previewBtn;
-@property (nonatomic,strong) UIButton *originBtn;
-@property (nonatomic,strong) UIButton *finishBtn;
-@property (nonatomic,strong) UILabel *numberLab;
+@property (nonatomic, strong) UIView * bottomView;
+@property (nonatomic, strong) UIButton * previewBtn;
+@property (nonatomic, strong) UIButton * originBtn;
+@property (nonatomic, strong) UIButton * finishBtn;
+@property (nonatomic, strong) UILabel * numberLab;
 
 // 是否回传原图[可用于控制图片压系数]
 @property (nonatomic, assign) BOOL isOrigin;
@@ -63,7 +63,7 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
     }
     [self.view addSubview:self.collectionView];
     if (!_cropImageOption && !_singleImageOption) {
-        self.collectionView.height = self.view.height-kTopBarHeight-kBottomHeight;
+        self.collectionView.height = self.view.height-kTopHeight-kTabHeight;
         // 是否显示原图选项
         _originBtn.hidden = !self.showOriginImageOption;
         [self.view addSubview:self.bottomView];
@@ -72,13 +72,13 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
     self.mmPHAssetArray = [[NSMutableArray alloc] init];
     self.selectedAssetArray = [[NSMutableArray alloc] init];
     
-    PHFetchOptions *option = [[PHFetchOptions alloc] init];
+    PHFetchOptions * option = [[PHFetchOptions alloc] init];
     option.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
-    PHFetchResult *result = [PHAsset fetchAssetsInAssetCollection:self.photoAlbum.collection options:option];
+    PHFetchResult * result = [PHAsset fetchAssetsInAssetCollection:self.photoAlbum.collection options:option];
     [result enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        PHAsset *asset = (PHAsset *)obj;
+        PHAsset * asset = (PHAsset *)obj;
         if (asset.mediaType == PHAssetMediaTypeImage) {
-            MMPHAsset *mmAsset = [[MMPHAsset alloc] init];
+            MMPHAsset * mmAsset = [[MMPHAsset alloc] init];
             mmAsset.asset = asset;
             mmAsset.isSelected = NO;
             [self.mmPHAssetArray addObject:mmAsset];
@@ -86,12 +86,20 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
     }];
 }
 
-#pragma mark - getter
+#pragma mark - lazy load
 - (UICollectionView *)collectionView
 {
     if (!_collectionView) {
-        UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
-        _collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height-kTopBarHeight) collectionViewLayout:flowLayout];
+        NSInteger numInLine = (kIPhone6p || kIPhoneXM) ? 5 : 4;
+        CGFloat itemWidth = (self.view.width - (numInLine + 1) * kMargin) / numInLine;
+        
+        UICollectionViewFlowLayout * flowLayout = [[UICollectionViewFlowLayout alloc] init];
+        flowLayout.itemSize = CGSizeMake(itemWidth, itemWidth);
+        flowLayout.sectionInset = UIEdgeInsetsMake(kMargin, kMargin, kMargin, kMargin);
+        flowLayout.minimumLineSpacing = kMargin;
+        flowLayout.minimumInteritemSpacing = 0.f;
+        
+        _collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height-kTopHeight) collectionViewLayout:flowLayout];
         _collectionView.backgroundColor = [UIColor clearColor];
         _collectionView.delegate = self;
         _collectionView.dataSource = self;
@@ -104,16 +112,16 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
 - (UIView *)bottomView
 {
     if (!_bottomView) {
-        _bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, self.collectionView.bottom, self.view.width, kBottomHeight)];
+        _bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, self.collectionView.bottom, self.view.width, kTabHeight)];
         _bottomView.backgroundColor = [UIColor whiteColor];
         _bottomView.userInteractionEnabled = NO;
         _bottomView.alpha = 0.5;
         
         CGFloat btHeight = 50.0f;
         // 上边框
-        CALayer *layer = [CALayer layer];
+        CALayer * layer = [CALayer layer];
         layer.frame = CGRectMake(0, 0, _bottomView.width, 0.5);
-        layer.backgroundColor = [[UIColor lightGrayColor] CGColor];
+        layer.backgroundColor = [[[UIColor lightGrayColor] colorWithAlphaComponent:0.5] CGColor];
         [_bottomView.layer addSublayer:layer];
         
         // 预览
@@ -133,6 +141,7 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
         [_originBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [_originBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 5, 0, 0)];
         [_originBtn setImage:[UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_mark")] forState:UIControlStateNormal];
+        [_originBtn setImage:[UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_marked")] forState:UIControlStateSelected];
         [_originBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
         [_originBtn addTarget:self action:@selector(buttonAction:) forControlEvents:UIControlEventTouchUpInside];
         [_bottomView addSubview:_originBtn];
@@ -179,7 +188,7 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
         MMPhotoPreviewController *previewVC = [[MMPhotoPreviewController alloc] init];
         previewVC.assetArray = self.selectedAssetArray;
         [previewVC setPhotoDeleteBlock:^(PHAsset *asset) {
-             for (MMPHAsset *mmAsset in self.mmPHAssetArray) {
+             for (MMPHAsset * mmAsset in self.mmPHAssetArray) {
                  if (mmAsset.asset == asset)  {
                      NSInteger index = [self.mmPHAssetArray indexOfObject:mmAsset];
                      mmAsset.isSelected = NO;
@@ -194,12 +203,8 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
     }
     else if (btn.tag == 101)  // 原图
     {
-        if (_isOrigin) {
-            [_originBtn setImage:[UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_mark")] forState:UIControlStateNormal];
-        } else {
-            [_originBtn setImage:[UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_marked")] forState:UIControlStateNormal];
-        }
         _isOrigin = !_isOrigin;
+        _originBtn.selected = _isOrigin;
     }
     else // 确定
     {
@@ -207,11 +212,11 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
             NSLog(@"警告:未设置回传!!!");
             return;
         }
-        NSMutableArray *result = [[NSMutableArray alloc] init];
+        NSMutableArray * result = [[NSMutableArray alloc] init];
         NSInteger totalNumber = [self.selectedAssetArray count];
         for(NSInteger i = 0; i < totalNumber; i ++)
         {
-            PHAsset *asset = [self.selectedAssetArray objectAtIndex:i];
+            PHAsset * asset = [self.selectedAssetArray objectAtIndex:i];
             // 获取图片
             [MMPhotoUtil getImageWithAsset:asset completion:^(UIImage *image) {
                 // 封装
@@ -236,40 +241,14 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
 {
     if (![self.selectedAssetArray count]) {
         self.bottomView.alpha = 0.5;
-        _numberLab.hidden = YES;
+        self.numberLab.hidden = YES;
         self.bottomView.userInteractionEnabled = NO;
     } else {
         self.bottomView.alpha = 1.0;
-        _numberLab.hidden = NO;
-        _numberLab.text = [NSString stringWithFormat:@"%d",(int)[self.selectedAssetArray count]];
+        self.numberLab.hidden = NO;
+        self.numberLab.text = [NSString stringWithFormat:@"%d",(int)[self.selectedAssetArray count]];
         self.bottomView.userInteractionEnabled = YES;
     }
-}
-
-#pragma mark - UICollectionViewDelegateFlowLayout
-- (CGSize)collectionView:(UICollectionView *)collectionView layout:(nonnull UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(nonnull NSIndexPath *)indexPath
-{
-    NSInteger eachLine = 4;
-    if (kDeviceIsIphone6p) {
-        eachLine = 5;
-    }
-    CGFloat cellWidth = (self.view.width-(eachLine+1)*kBlankWidth)/eachLine;
-    return CGSizeMake(cellWidth, cellWidth);
-}
-
-- (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
-{
-    return UIEdgeInsetsMake(kBlankWidth, kBlankWidth, kBlankWidth, kBlankWidth);
-}
-
-- (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section
-{
-    return 0.0f;
-}
-
-- (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section
-{
-    return kBlankWidth;
 }
 
 #pragma mark - UICollectionViewDataSource
@@ -285,9 +264,9 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    MMPHAsset *mmAsset = [self.mmPHAssetArray objectAtIndex:indexPath.row];
+    MMPHAsset * mmAsset = [self.mmPHAssetArray objectAtIndex:indexPath.row];
     // 赋值
-    MMPHAssetCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:CellIdentifier forIndexPath:indexPath];
+    MMPHAssetCell * cell = [collectionView dequeueReusableCellWithReuseIdentifier:CellIdentifier forIndexPath:indexPath];
     cell.asset = mmAsset.asset;
     cell.selected = mmAsset.isSelected;
     return cell;
@@ -297,14 +276,14 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
     [collectionView deselectItemAtIndexPath:indexPath animated:YES];
-    MMPHAsset *mmAsset = [self.mmPHAssetArray objectAtIndex:indexPath.row];
-    PHAsset *asset = mmAsset.asset;
+    MMPHAsset * mmAsset = [self.mmPHAssetArray objectAtIndex:indexPath.row];
+    PHAsset * asset = mmAsset.asset;
     // 图片裁剪
     if (_cropImageOption)
     {
         // 获取图片
         [MMPhotoUtil getImageWithAsset:asset completion:^(UIImage *image) {
-            MMPhotoCropController *controller = [[MMPhotoCropController alloc] init];
+            MMPhotoCropController * controller = [[MMPhotoCropController alloc] init];
             controller.originalImage = image;
             controller.imageCropSize = self.imageCropSize;
             [controller setImageCropBlock:^(UIImage *cropImage){
@@ -351,11 +330,11 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
     
     // 提醒
     if (([self.selectedAssetArray count] == _maximumNumberOfImage) && !mmAsset.isSelected) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"最多可以添加%ld张图片",(long)_maximumNumberOfImage]
-                                                        message:nil
-                                                       delegate:nil
-                                              cancelButtonTitle:@"知道了"
-                                              otherButtonTitles:nil, nil];
+        UIAlertView * alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"最多可以添加%ld张图片",(long)_maximumNumberOfImage]
+                                                         message:nil
+                                                        delegate:nil
+                                               cancelButtonTitle:@"知道了"
+                                               otherButtonTitles:nil, nil];
         [alert show];
         return;
     }
@@ -387,8 +366,8 @@ static NSString *const CellIdentifier = @"MMPHAssetCell";
 #pragma mark - ################## MMPHAssetCell
 @interface MMPHAssetCell ()
 
-@property (nonatomic,strong) UIImageView *imageView;
-@property (nonatomic,strong) UIImageView *overLay;
+@property (nonatomic, strong) UIImageView * imageView;
+@property (nonatomic, strong) UIImageView * overLay;
 
 @end
 

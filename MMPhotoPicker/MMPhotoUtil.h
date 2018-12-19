@@ -63,4 +63,13 @@
 + (void)getImageWithAsset:(PHAsset *)asset
                completion:(void (^)(UIImage *image))completion;
 
+
+/**
+ 调整图片方向
+
+ @param aImage 原始图片
+ @return 调整后的图片
+ */
++ (UIImage *)fixOrientation:(UIImage *)aImage;
+
 @end

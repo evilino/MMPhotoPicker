@@ -9,14 +9,14 @@
 #import "MMPhotoPreviewController.h"
 #import "MMPhotoPickerConst.h"
 
-@interface MMPhotoPreviewController ()<UIScrollViewDelegate>
+@interface MMPhotoPreviewController () <UIScrollViewDelegate>
 
-@property(nonatomic, strong) UIScrollView *scrollView;
-@property(nonatomic, strong) UIView *titleView;
-@property(nonatomic, strong) UILabel *titleLab;
+@property (nonatomic, strong) UIScrollView * scrollView;
+@property (nonatomic, strong) UIView * titleView;
+@property (nonatomic, strong) UILabel * titleLab;
 
-@property(nonatomic, assign) BOOL isHidden;
-@property(nonatomic, assign) NSInteger index;
+@property (nonatomic, assign) BOOL isHidden;
+@property (nonatomic, assign) NSInteger index;
 
 @end
 
@@ -61,17 +61,19 @@
     [self.view addSubview:_scrollView];
 
     CGFloat top = kStatusHeight;
-    CGFloat topH = kTopBarHeight;
+    CGFloat topH = kTopHeight;
     _titleView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, topH)];
     _titleView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
     [self.view addSubview:_titleView];
+    
     // 返回按钮
-    UIImage *image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_back")];
-    UIButton *backBtn = [[UIButton alloc] initWithFrame:CGRectMake(10, top, kNavHeight, kNavHeight)];
+    UIImage * image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_back")];
+    UIButton * backBtn = [[UIButton alloc] initWithFrame:CGRectMake(10, top, kNavHeight, kNavHeight)];
     [backBtn setImage:image forState:UIControlStateNormal];
     [backBtn setImageEdgeInsets:UIEdgeInsetsMake((kNavHeight-image.size.height)/2, 0, (kNavHeight-image.size.height)/2, 0)];
     [backBtn addTarget:self action:@selector(backAction) forControlEvents:UIControlEventTouchUpInside];
     [_titleView addSubview:backBtn];
+    
     // 顺序Label
     _titleLab = [[UILabel alloc] initWithFrame:CGRectMake((_titleView.width-200)/2, top, 200, kNavHeight)];
     _titleLab.font = [UIFont boldSystemFontOfSize:19.0];
@@ -79,19 +81,22 @@
     _titleLab.textColor = [UIColor whiteColor];
     _titleLab.text = [NSString stringWithFormat:@"1/%d",(int)[self.assetArray count]];
     [_titleView addSubview:_titleLab];
+    
     // 删除按钮
     image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_delete")];
-    UIButton *delBtn = [[UIButton alloc]initWithFrame:CGRectMake(_titleView.width-kNavHeight, top, kNavHeight, kNavHeight)];
+    UIButton * delBtn = [[UIButton alloc]initWithFrame:CGRectMake(_titleView.width-kNavHeight, top, kNavHeight, kNavHeight)];
     [delBtn setImage:image forState:UIControlStateNormal];
     [delBtn setImageEdgeInsets:UIEdgeInsetsMake((kNavHeight-image.size.height)/2, 0, (kNavHeight-image.size.height)/2, 0)];
     [delBtn addTarget:self action:@selector(deleteAction) forControlEvents:UIControlEventTouchUpInside];
     [_titleView addSubview:delBtn];
+    
     // 双击
-    UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapGestureCallback:)];
+    UITapGestureRecognizer * doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapGestureCallback:)];
     doubleTap.numberOfTapsRequired = 2;
     [_scrollView addGestureRecognizer:doubleTap];
+   
     // 单击
-    UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTapGestureCallback:)];
+    UITapGestureRecognizer * singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTapGestureCallback:)];
     [singleTap requireGestureRecognizerToFail:doubleTap];
     [_scrollView addGestureRecognizer:singleTap];
 }
@@ -117,13 +122,12 @@
 - (void)singleTapGestureCallback:(UITapGestureRecognizer *)gesture
 {
     _isHidden = !_isHidden;
-    __weak typeof(self) weakSelf = self;
     [UIView animateWithDuration:0.5 animations:^{
-        weakSelf.titleView.hidden = weakSelf.isHidden;
+        self.titleView.hidden = _isHidden;
     }];
 }
 
-#pragma mark - 时间处理
+#pragma mark - 删除处理
 - (void)backAction
 {
     [self.navigationController popViewControllerAnimated:YES];
@@ -132,7 +136,7 @@
 - (void)deleteAction
 {
     // 移除视图
-    PHAsset *asset = [self.assetArray objectAtIndex:_index];
+    PHAsset * asset = [self.assetArray objectAtIndex:_index];
     [self deleteImage];
     [self.assetArray removeObjectAtIndex:_index];
     // 更新索引
@@ -156,23 +160,23 @@
     NSInteger count = [self.assetArray count];
     for (int i = 0; i < count; i ++)
     {
-        PHAsset *asset = [self.assetArray objectAtIndex:i];
+        PHAsset * asset = [self.assetArray objectAtIndex:i];
         [MMPhotoUtil getImageWithAsset:asset completion:^(UIImage *image) {
-            UIImageView *imageView = [[UIImageView alloc] initWithFrame:self.view.bounds];
+            UIImageView * imageView = [[UIImageView alloc] initWithFrame:self.view.bounds];
             imageView.image = image;
             imageView.clipsToBounds  = YES;
             imageView.contentMode = UIViewContentModeScaleAspectFit;
             imageView.contentScaleFactor = [[UIScreen mainScreen] scale];
             imageView.backgroundColor = [UIColor clearColor];
             // 用于图片的捏合缩放
-            UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(_scrollView.width * i, 0, _scrollView.width, _scrollView.height)];
+            UIScrollView * scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(_scrollView.width * i, 0, _scrollView.width, _scrollView.height)];
             scrollView.contentSize = CGSizeMake(scrollView.width, scrollView.height);
             scrollView.minimumZoomScale = 1.0;
             scrollView.delegate = self;
             scrollView.showsHorizontalScrollIndicator = NO;
             scrollView.showsVerticalScrollIndicator = NO;
             scrollView.backgroundColor = [UIColor clearColor];
-            scrollView.tag = 100+i;
+            scrollView.tag = 100 + i;
             [scrollView addSubview:imageView];
             
             CGSize imgSize = [imageView.image size];
@@ -197,12 +201,12 @@
 {
     // 移除当前视图
     NSInteger tag = 100 + _index;
-    UIScrollView *scrollView = [_scrollView viewWithTag:tag];
+    UIScrollView * scrollView = [_scrollView viewWithTag:tag];
     [scrollView removeFromSuperview];
     // 更新后面视图的Frame和TAG(箭头内的执行过程)
     // ↓↓↓
     NSInteger count = [self.assetArray count];
-    UIScrollView *sv = nil;
+    UIScrollView * sv = nil;
     // 记录上一个的信息
     CGRect setRect = scrollView.frame;
     NSInteger setTag = tag;

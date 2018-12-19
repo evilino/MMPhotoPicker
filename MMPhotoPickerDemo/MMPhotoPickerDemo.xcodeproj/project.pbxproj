@@ -23,6 +23,9 @@
 		8BFCD9471FB550E200C603E7 /* MMPhotoAssetController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BFCD9461FB550E200C603E7 /* MMPhotoAssetController.m */; };
 		8BFCD9491FB551C000C603E7 /* default_bar@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8BFCD9481FB551C000C603E7 /* default_bar@2x.png */; };
 		8BFCD94C1FB5593C00C603E7 /* MMPhotoUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BFCD94B1FB5593C00C603E7 /* MMPhotoUtil.m */; };
+		FA40261921C9E3A100F2BE1D /* MMPhotoPicker.podspec in Resources */ = {isa = PBXBuildFile; fileRef = FA40261621C9E3A100F2BE1D /* MMPhotoPicker.podspec */; };
+		FA40261A21C9E3A100F2BE1D /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = FA40261721C9E3A100F2BE1D /* README.md */; };
+		FA40261B21C9E3A100F2BE1D /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = FA40261821C9E3A100F2BE1D /* LICENSE */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +56,9 @@
 		8BFCD9481FB551C000C603E7 /* default_bar@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "default_bar@2x.png"; sourceTree = "<group>"; };
 		8BFCD94A1FB5593C00C603E7 /* MMPhotoUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMPhotoUtil.h; sourceTree = "<group>"; };
 		8BFCD94B1FB5593C00C603E7 /* MMPhotoUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMPhotoUtil.m; sourceTree = "<group>"; };
+		FA40261621C9E3A100F2BE1D /* MMPhotoPicker.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = MMPhotoPicker.podspec; path = ../MMPhotoPicker.podspec; sourceTree = "<group>"; };
+		FA40261721C9E3A100F2BE1D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		FA40261821C9E3A100F2BE1D /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +119,8 @@
 		8BFCD92B1FB548FA00C603E7 /* MMPhotoPicker */ = {
 			isa = PBXGroup;
 			children = (
+				FA40261521C9E38100F2BE1D /* Pod */,
+				8BFCD9411FB54D6900C603E7 /* MMPhotoPickerConst.h */,
 				8BFCD92C1FB548FA00C603E7 /* MMPhotoPickerController.h */,
 				8BFCD92D1FB548FA00C603E7 /* MMPhotoPickerController.m */,
 				8BFCD9451FB550E200C603E7 /* MMPhotoAssetController.h */,
@@ -125,11 +133,20 @@
 				8BFCD92F1FB548FA00C603E7 /* UIView+Geometry.m */,
 				8BFCD94A1FB5593C00C603E7 /* MMPhotoUtil.h */,
 				8BFCD94B1FB5593C00C603E7 /* MMPhotoUtil.m */,
-				8BFCD9411FB54D6900C603E7 /* MMPhotoPickerConst.h */,
 				8B2D5E691FB5A6CD004CC67A /* MMPhotoPicker.bundle */,
 			);
 			name = MMPhotoPicker;
 			path = ../../MMPhotoPicker;
+			sourceTree = "<group>";
+		};
+		FA40261521C9E38100F2BE1D /* Pod */ = {
+			isa = PBXGroup;
+			children = (
+				FA40261621C9E3A100F2BE1D /* MMPhotoPicker.podspec */,
+				FA40261721C9E3A100F2BE1D /* README.md */,
+				FA40261821C9E3A100F2BE1D /* LICENSE */,
+			);
+			name = Pod;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -194,8 +211,11 @@
 				8B2D5E6E1FB5ADD7004CC67A /* IMG_5225.JPG in Resources */,
 				8BFCD9491FB551C000C603E7 /* default_bar@2x.png in Resources */,
 				8BFCD9241FB548E600C603E7 /* LaunchScreen.storyboard in Resources */,
+				FA40261921C9E3A100F2BE1D /* MMPhotoPicker.podspec in Resources */,
+				FA40261B21C9E3A100F2BE1D /* LICENSE in Resources */,
 				8BFCD9211FB548E600C603E7 /* Assets.xcassets in Resources */,
 				8BFCD91F1FB548E600C603E7 /* Main.storyboard in Resources */,
+				FA40261A21C9E3A100F2BE1D /* README.md in Resources */,
 				8B2D5E6A1FB5A6CD004CC67A /* MMPhotoPicker.bundle in Resources */,
 				8B2D5E6D1FB5ADD7004CC67A /* IMG_4808.JPG in Resources */,
 			);
@@ -286,7 +306,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = iphoneos11.3;
+				SDKROOT = iphoneos;
 			};
 			name = Debug;
 		};
@@ -328,7 +348,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = iphoneos11.3;
+				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -343,6 +363,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lea.MMPhotoPickerDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
 			};
 			name = Debug;
 		};
@@ -356,6 +377,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lea.MMPhotoPickerDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
 			};
 			name = Release;
 		};
