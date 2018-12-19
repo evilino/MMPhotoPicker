@@ -7,7 +7,7 @@
 ![MMPhotoPicker](Screenshot.png)
 
 
-`MMPhotoPicker`基于`Photos`框架，集成了图片选择器（支持多选、单选、对图片进行裁剪、选择原图、可预览）以及创建自定义相册，并保存图片到自定义相册。若想使用基于`AssetsLibrary`框架的图片选择器，可选择[MMImagePicker](https://github.com/CheeryLau/MMImagePicker)。
+`MMPhotoPicker`基于`Photos`框架，集成了图片选择器（支持多选、单选、对图片进行裁剪、选择原图、可预览）以及创建自定义相册，并保存图片到自定义相册。若想使用基于`AssetsLibrary`框架的图片选择器，可以参考[MMImagePicker](https://github.com/CheeryLau/MMImagePicker)。
 
 
 ## 属性
@@ -66,15 +66,15 @@ MMPhotoPickerController属性介绍：
 3. `#import <MMPhotoPicker/MMPhotoPickerController.h>`.
 
 ```objc
-MMPhotoPickerController *mmVC = [[MMPhotoPickerController alloc] init];
+MMPhotoPickerController * controller = [[MMPhotoPickerController alloc] init];
 // 设置代理
-mmVC.delegate = self;
+controller.delegate = self;
 // 设置显示空相册
-mmVC.showEmptyAlbum = YES;
+controller.showEmptyAlbum = YES;
 // 设置最大选择数目
-mmVC.maximumNumberOfImage = 9;
-UINavigationController *mmNav = [[UINavigationController alloc] initWithRootViewController:mmVC];
-[self.navigationController presentViewController:mmNav animated:YES completion:nil];
+controller.maximumNumberOfImage = 9;
+UINavigationController * navigation = [[UINavigationController alloc] initWithRootViewController:controller];
+[self.navigationController presentViewController:navigation animated:YES completion:nil];
 ```
 
 ```objc
