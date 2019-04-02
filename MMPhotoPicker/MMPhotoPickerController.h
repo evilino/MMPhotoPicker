@@ -10,7 +10,7 @@
 
 #import <UIKit/UIKit.h>
 #import <Photos/Photos.h>
-#import "MMPhotoPickerConst.h"
+#import "MMPhotoPickerMacros.h"
 
 #pragma mark - ################## MMPhotoPickerController
 

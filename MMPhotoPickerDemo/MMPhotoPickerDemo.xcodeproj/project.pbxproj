@@ -23,9 +23,10 @@
 		8BFCD9471FB550E200C603E7 /* MMPhotoAssetController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BFCD9461FB550E200C603E7 /* MMPhotoAssetController.m */; };
 		8BFCD9491FB551C000C603E7 /* default_bar@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8BFCD9481FB551C000C603E7 /* default_bar@2x.png */; };
 		8BFCD94C1FB5593C00C603E7 /* MMPhotoUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BFCD94B1FB5593C00C603E7 /* MMPhotoUtil.m */; };
-		FA40261921C9E3A100F2BE1D /* MMPhotoPicker.podspec in Resources */ = {isa = PBXBuildFile; fileRef = FA40261621C9E3A100F2BE1D /* MMPhotoPicker.podspec */; };
-		FA40261A21C9E3A100F2BE1D /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = FA40261721C9E3A100F2BE1D /* README.md */; };
-		FA40261B21C9E3A100F2BE1D /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = FA40261821C9E3A100F2BE1D /* LICENSE */; };
+		FA458652225355B500CF66E1 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = FA45864E225355B500CF66E1 /* LICENSE */; };
+		FA458653225355B500CF66E1 /* MMPhotoPicker.podspec in Resources */ = {isa = PBXBuildFile; fileRef = FA45864F225355B500CF66E1 /* MMPhotoPicker.podspec */; };
+		FA458654225355B500CF66E1 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = FA458650225355B500CF66E1 /* README.md */; };
+		FA458655225355B500CF66E1 /* Screenshot.png in Resources */ = {isa = PBXBuildFile; fileRef = FA458651225355B500CF66E1 /* Screenshot.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,15 +51,16 @@
 		8BFCD9361FB54B7400C603E7 /* MMPhotoCropController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMPhotoCropController.m; sourceTree = "<group>"; };
 		8BFCD9381FB54BA100C603E7 /* MMPhotoPreviewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMPhotoPreviewController.h; sourceTree = "<group>"; };
 		8BFCD9391FB54BA100C603E7 /* MMPhotoPreviewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMPhotoPreviewController.m; sourceTree = "<group>"; };
-		8BFCD9411FB54D6900C603E7 /* MMPhotoPickerConst.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MMPhotoPickerConst.h; sourceTree = "<group>"; };
 		8BFCD9451FB550E200C603E7 /* MMPhotoAssetController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMPhotoAssetController.h; sourceTree = "<group>"; };
 		8BFCD9461FB550E200C603E7 /* MMPhotoAssetController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMPhotoAssetController.m; sourceTree = "<group>"; };
 		8BFCD9481FB551C000C603E7 /* default_bar@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "default_bar@2x.png"; sourceTree = "<group>"; };
 		8BFCD94A1FB5593C00C603E7 /* MMPhotoUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMPhotoUtil.h; sourceTree = "<group>"; };
 		8BFCD94B1FB5593C00C603E7 /* MMPhotoUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMPhotoUtil.m; sourceTree = "<group>"; };
-		FA40261621C9E3A100F2BE1D /* MMPhotoPicker.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = MMPhotoPicker.podspec; path = ../MMPhotoPicker.podspec; sourceTree = "<group>"; };
-		FA40261721C9E3A100F2BE1D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
-		FA40261821C9E3A100F2BE1D /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
+		FA45864E225355B500CF66E1 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LICENSE; path = ../../LICENSE; sourceTree = "<group>"; };
+		FA45864F225355B500CF66E1 /* MMPhotoPicker.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = MMPhotoPicker.podspec; path = ../../MMPhotoPicker.podspec; sourceTree = "<group>"; };
+		FA458650225355B500CF66E1 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../README.md; sourceTree = "<group>"; };
+		FA458651225355B500CF66E1 /* Screenshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Screenshot.png; path = ../../Screenshot.png; sourceTree = "<group>"; };
+		FA4586562253568300CF66E1 /* MMPhotoPickerMacros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MMPhotoPickerMacros.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +93,7 @@
 		8BFCD9131FB548E600C603E7 /* MMPhotoPickerDemo */ = {
 			isa = PBXGroup;
 			children = (
+				FA45864D225355A800CF66E1 /* Pod */,
 				8BFCD92B1FB548FA00C603E7 /* MMPhotoPicker */,
 				8BFCD9171FB548E600C603E7 /* AppDelegate.h */,
 				8BFCD9181FB548E600C603E7 /* AppDelegate.m */,
@@ -119,8 +122,7 @@
 		8BFCD92B1FB548FA00C603E7 /* MMPhotoPicker */ = {
 			isa = PBXGroup;
 			children = (
-				FA40261521C9E38100F2BE1D /* Pod */,
-				8BFCD9411FB54D6900C603E7 /* MMPhotoPickerConst.h */,
+				FA4586562253568300CF66E1 /* MMPhotoPickerMacros.h */,
 				8BFCD92C1FB548FA00C603E7 /* MMPhotoPickerController.h */,
 				8BFCD92D1FB548FA00C603E7 /* MMPhotoPickerController.m */,
 				8BFCD9451FB550E200C603E7 /* MMPhotoAssetController.h */,
@@ -139,12 +141,13 @@
 			path = ../../MMPhotoPicker;
 			sourceTree = "<group>";
 		};
-		FA40261521C9E38100F2BE1D /* Pod */ = {
+		FA45864D225355A800CF66E1 /* Pod */ = {
 			isa = PBXGroup;
 			children = (
-				FA40261621C9E3A100F2BE1D /* MMPhotoPicker.podspec */,
-				FA40261721C9E3A100F2BE1D /* README.md */,
-				FA40261821C9E3A100F2BE1D /* LICENSE */,
+				FA45864E225355B500CF66E1 /* LICENSE */,
+				FA45864F225355B500CF66E1 /* MMPhotoPicker.podspec */,
+				FA458650225355B500CF66E1 /* README.md */,
+				FA458651225355B500CF66E1 /* Screenshot.png */,
 			);
 			name = Pod;
 			sourceTree = "<group>";
@@ -210,13 +213,14 @@
 			files = (
 				8B2D5E6E1FB5ADD7004CC67A /* IMG_5225.JPG in Resources */,
 				8BFCD9491FB551C000C603E7 /* default_bar@2x.png in Resources */,
+				FA458654225355B500CF66E1 /* README.md in Resources */,
+				FA458655225355B500CF66E1 /* Screenshot.png in Resources */,
+				FA458652225355B500CF66E1 /* LICENSE in Resources */,
 				8BFCD9241FB548E600C603E7 /* LaunchScreen.storyboard in Resources */,
-				FA40261921C9E3A100F2BE1D /* MMPhotoPicker.podspec in Resources */,
-				FA40261B21C9E3A100F2BE1D /* LICENSE in Resources */,
 				8BFCD9211FB548E600C603E7 /* Assets.xcassets in Resources */,
 				8BFCD91F1FB548E600C603E7 /* Main.storyboard in Resources */,
-				FA40261A21C9E3A100F2BE1D /* README.md in Resources */,
 				8B2D5E6A1FB5A6CD004CC67A /* MMPhotoPicker.bundle in Resources */,
+				FA458653225355B500CF66E1 /* MMPhotoPicker.podspec in Resources */,
 				8B2D5E6D1FB5ADD7004CC67A /* IMG_4808.JPG in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

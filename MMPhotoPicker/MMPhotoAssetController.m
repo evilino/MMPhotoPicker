@@ -140,8 +140,8 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
         [_originBtn setTitle:@"原图" forState:UIControlStateNormal];
         [_originBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [_originBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 5, 0, 0)];
-        [_originBtn setImage:[UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_mark")] forState:UIControlStateNormal];
-        [_originBtn setImage:[UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_marked")] forState:UIControlStateSelected];
+        [_originBtn setImage:[UIImage imageNamed:MMSrcName(@"mmphoto_mark")] forState:UIControlStateNormal];
+        [_originBtn setImage:[UIImage imageNamed:MMSrcName(@"mmphoto_marked")] forState:UIControlStateSelected];
         [_originBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
         [_originBtn addTarget:self action:@selector(buttonAction:) forControlEvents:UIControlEventTouchUpInside];
         [_bottomView addSubview:_originBtn];
@@ -401,7 +401,7 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
 {
     if (!_overLay) {
         _overLay = [[UIImageView alloc] initWithFrame:self.bounds];
-        _overLay.image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_overlay")];
+        _overLay.image = [UIImage imageNamed:MMSrcName(@"mmphoto_overlay")];
     }
     return _overLay;
 }

@@ -7,7 +7,7 @@
 //
 
 #import "MMPhotoCropController.h"
-#import "MMPhotoPickerConst.h"
+#import "MMPhotoPickerMacros.h"
 
 @interface MMPhotoCropController ()
 

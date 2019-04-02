@@ -7,7 +7,7 @@
 ![MMPhotoPicker](Screenshot.png)
 
 
-`MMPhotoPicker`基于`Photos`框架，集成了图片选择器（支持多选、单选、对图片进行裁剪、选择原图、可预览）以及创建自定义相册，并保存图片到自定义相册。若想使用基于`AssetsLibrary`框架的图片选择器，可以参考[MMImagePicker](https://github.com/ChellyLau/MMImagePicker)。
+`MMPhotoPicker`基于`Photos`框架，集成了图片选择器（支持多选、单选、对图片进行裁剪、选择原图、可预览）以及创建自定义相册，并保存图片到自定义相册。基于`AssetsLibrary`框架的图片选择器，可以参考[MMImagePicker](https://github.com/ChellyLau/MMImagePicker)。
 
 
 ## 属性
@@ -110,7 +110,7 @@ MMPhotoUtil类中：
 
 ## 后记
 
-不定时更新，如有问题欢迎给我[留言](https://github.com/ChellyLau/MMPhotoPicker/issues)，我会及时回复。如果这个工具对你有一些帮助，请给我一个star，谢谢。
+不定时更新，如有问题欢迎给我[留言](https://github.com/ChellyLau/MMPhotoPicker/issues)，我会及时回复。如果这个工具对你有一些帮助，请给我一个star，谢谢🌹🌹。
 
 
 

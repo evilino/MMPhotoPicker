@@ -196,7 +196,7 @@ static CGFloat rowHeight = 60.f;
             cell.imageView.image = image;
         }];
     } else {
-        cell.imageView.image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_empty")];
+        cell.imageView.image = [UIImage imageNamed:MMSrcName(@"mmphoto_empty")];
     }
     // 数量
     NSString * text = [NSString stringWithFormat:@"%@  (%ld)",album.name, (long)album.assetCount];
@@ -238,18 +238,18 @@ static CGFloat rowHeight = 60.f;
     controller.cropImageOption = self.cropImageOption;
     controller.imageCropSize = self.imageCropSize;
     
-    __weak typeof(self) weakSelf = self;
+    WS(wSelf);
     [controller setCompletion:^(NSArray *info, BOOL isOrigin, BOOL isCancel){
-        weakSelf.isOrigin = isOrigin;
+        wSelf.isOrigin = isOrigin;
         if (isCancel) { // 取消
-            if ([weakSelf.delegate respondsToSelector:@selector(mmPhotoPickerControllerDidCancel:)]) {
-                [weakSelf.delegate mmPhotoPickerControllerDidCancel:weakSelf];
+            if ([wSelf.delegate respondsToSelector:@selector(mmPhotoPickerControllerDidCancel:)]) {
+                [wSelf.delegate mmPhotoPickerControllerDidCancel:wSelf];
             } else {
-                [weakSelf dismissViewControllerAnimated:YES completion:nil];
+                [wSelf dismissViewControllerAnimated:YES completion:nil];
             }
         } else { // 确认选择
-            if ([weakSelf.delegate respondsToSelector:@selector(mmPhotoPickerController:didFinishPickingMediaWithInfo:)]) {
-                [weakSelf.delegate mmPhotoPickerController:weakSelf didFinishPickingMediaWithInfo:info];
+            if ([wSelf.delegate respondsToSelector:@selector(mmPhotoPickerController:didFinishPickingMediaWithInfo:)]) {
+                [wSelf.delegate mmPhotoPickerController:wSelf didFinishPickingMediaWithInfo:info];
             }
         }
     }];

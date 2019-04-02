@@ -7,7 +7,7 @@
 //
 
 #import "MMPhotoPreviewController.h"
-#import "MMPhotoPickerConst.h"
+#import "MMPhotoPickerMacros.h"
 
 @interface MMPhotoPreviewController () <UIScrollViewDelegate>
 
@@ -67,7 +67,7 @@
     [self.view addSubview:_titleView];
     
     // 返回按钮
-    UIImage * image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_back")];
+    UIImage * image = [UIImage imageNamed:MMSrcName(@"mmphoto_back")];
     UIButton * backBtn = [[UIButton alloc] initWithFrame:CGRectMake(10, top, kNavHeight, kNavHeight)];
     [backBtn setImage:image forState:UIControlStateNormal];
     [backBtn setImageEdgeInsets:UIEdgeInsetsMake((kNavHeight-image.size.height)/2, 0, (kNavHeight-image.size.height)/2, 0)];
@@ -83,7 +83,7 @@
     [_titleView addSubview:_titleLab];
     
     // 删除按钮
-    image = [UIImage imageNamed:MMPhotoPickerSrcName(@"mmphoto_delete")];
+    image = [UIImage imageNamed:MMSrcName(@"mmphoto_delete")];
     UIButton * delBtn = [[UIButton alloc]initWithFrame:CGRectMake(_titleView.width-kNavHeight, top, kNavHeight, kNavHeight)];
     [delBtn setImage:image forState:UIControlStateNormal];
     [delBtn setImageEdgeInsets:UIEdgeInsetsMake((kNavHeight-image.size.height)/2, 0, (kNavHeight-image.size.height)/2, 0)];
