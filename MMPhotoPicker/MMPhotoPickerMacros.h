@@ -47,15 +47,15 @@
 #define RGBColor(r,g,b,a)       [UIColor colorWithRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:a]
 // 主颜色
 #define kMainColor              RGBColor(211.0, 58.0, 49.0, 1.0)
-// 图片路径
-#define MMSrcName(file)         [@"MMPhotoPicker.bundle" stringByAppendingPathComponent:file]
 // 弱引用
 #define WS(wSelf)               __weak typeof(self) wSelf = self
 
 // 资源类型 PHAssetMediaType
 #define MMPhotoMediaType        @"mediaType"
-// 位置方向
+// 图片地理位置
 #define MMPhotoLocation         @"location"
+// 图片方向
+#define MMPhotoOrientation      @"orientation"
 // 原始图片
 #define MMPhotoOriginalImage    @"originalImage"
 // 视频路径

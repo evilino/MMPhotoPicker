@@ -11,20 +11,13 @@
 
 @interface MMPhotoCropController ()
 
-// 图片显示视图
-@property (nonatomic, strong) UIImageView * imageView;
-// 蒙版
-@property (nonatomic, strong) UIView * overlayView;
-// 裁剪frame
-@property (nonatomic, assign) CGRect cropFrame;
-// 记录frame
-@property (nonatomic, assign) CGRect oldFrame;
-// 最大frame
-@property (nonatomic, assign) CGRect largeFrame;
-// 最终frame
-@property (nonatomic, assign) CGRect latestFrame;
-// 比例
-@property (nonatomic, assign) CGFloat limitRatio;
+@property (nonatomic, strong) UIImageView * imageView; // 图片显示视图
+@property (nonatomic, strong) UIView * overlayView; // 蒙版
+@property (nonatomic, assign) CGRect cropFrame; // 裁剪frame
+@property (nonatomic, assign) CGRect oldFrame; // 记录frame
+@property (nonatomic, assign) CGRect largeFrame; // 最大frame
+@property (nonatomic, assign) CGRect latestFrame; // 最终frame
+@property (nonatomic, assign) CGFloat limitRatio; // 比例
 
 @end
 
@@ -48,11 +41,11 @@
     [self.view addGestureRecognizer:pan];
     
     // 赋值
-    if (_imageCropSize.width * _imageCropSize.height == 0) {
-        _imageCropSize = CGSizeMake(self.view.width, self.view.width);
+    if (_cropSize.width * _cropSize.height == 0) {
+        _cropSize = CGSizeMake(self.view.width, self.view.width);
     }
     _limitRatio = 3.f;
-    _cropFrame = CGRectMake(0, (self.view.height-kTopHeight-_imageCropSize.height)/2, _imageCropSize.width, _imageCropSize.height);
+    _cropFrame = CGRectMake(0, (self.view.height-kTopHeight-_cropSize.height)/2, _cropSize.width, _cropSize.height);
     CGFloat oriWidth = _cropFrame.size.width;
     CGFloat oriHeight = oriWidth * _originalImage.size.height / _originalImage.size.width;
     CGFloat oriX = _cropFrame.origin.x + (_cropFrame.size.width - oriWidth) / 2;
@@ -66,42 +59,18 @@
     [self overlayClipping];
 }
 
-#pragma mark - 事件处理
-- (void)leftBarItemAction
+- (void)viewWillDisappear:(BOOL)animated
 {
+    [super viewWillDisappear:animated];
     self.imageView.frame = _oldFrame;
-    [self.navigationController popViewControllerAnimated:YES];
 }
 
+#pragma mark - 事件处理
 - (void)rightBarItemAction
 {
     if (self.imageCropBlock) {
         self.imageCropBlock([self getCropImage]);
     }
-}
-
-#pragma mark - 视图区
-- (UIImageView *)imageView
-{
-    if (!_imageView) {
-        _imageView = [[UIImageView alloc] initWithFrame:self.view.bounds];
-        _imageView.multipleTouchEnabled = YES;
-        _imageView.userInteractionEnabled = YES;
-        _imageView.backgroundColor = [UIColor clearColor];
-    }
-    return _imageView;
-}
-
-- (UIView *)overlayView
-{
-    if (!_overlayView) {
-        _overlayView = [[UIView alloc] initWithFrame:self.view.bounds];
-        _overlayView.alpha = 0.5f;
-        _overlayView.userInteractionEnabled = NO;
-        _overlayView.backgroundColor = [UIColor blackColor];
-        _overlayView.autoresizingMask = UIViewAutoresizingFlexibleHeight |UIViewAutoresizingFlexibleWidth;
-    }
-    return _overlayView;
 }
 
 #pragma mark - 裁剪区
@@ -229,6 +198,30 @@
     UIImage * smallImage = [UIImage imageWithCGImage:subImageRef];
     UIGraphicsEndImageContext();
     return smallImage;
+}
+
+#pragma mark - lazy load
+- (UIImageView *)imageView
+{
+    if (!_imageView) {
+        _imageView = [[UIImageView alloc] initWithFrame:self.view.bounds];
+        _imageView.multipleTouchEnabled = YES;
+        _imageView.userInteractionEnabled = YES;
+        _imageView.backgroundColor = [UIColor clearColor];
+    }
+    return _imageView;
+}
+
+- (UIView *)overlayView
+{
+    if (!_overlayView) {
+        _overlayView = [[UIView alloc] initWithFrame:self.view.bounds];
+        _overlayView.alpha = 0.5f;
+        _overlayView.userInteractionEnabled = NO;
+        _overlayView.backgroundColor = [UIColor blackColor];
+        _overlayView.autoresizingMask = UIViewAutoresizingFlexibleHeight |UIViewAutoresizingFlexibleWidth;
+    }
+    return _overlayView;
 }
 
 #pragma mark -

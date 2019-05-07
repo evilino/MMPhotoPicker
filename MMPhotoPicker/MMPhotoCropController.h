@@ -15,7 +15,7 @@
 // 原始图片
 @property (nonatomic, strong) UIImage * originalImage;
 // 裁剪的大小[默认方形、屏幕宽度]
-@property (nonatomic, assign) CGSize imageCropSize;
+@property (nonatomic, assign) CGSize cropSize;
 // 裁剪后回传
 @property (nonatomic, copy) void(^imageCropBlock)(UIImage * cropImage);
 

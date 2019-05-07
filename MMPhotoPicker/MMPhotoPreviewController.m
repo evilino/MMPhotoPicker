@@ -14,9 +14,12 @@
 @property (nonatomic, strong) UIScrollView * scrollView;
 @property (nonatomic, strong) UIView * titleView;
 @property (nonatomic, strong) UILabel * titleLab;
-
-@property (nonatomic, assign) BOOL isHidden;
+@property (nonatomic, strong) NSMutableArray * playerArray;
+@property (nonatomic, strong) MMAVPlayer * curPlayer;
+@property (nonatomic, strong) UIImageView * videoOverLay;
 @property (nonatomic, assign) NSInteger index;
+@property (nonatomic, assign) BOOL isHidden;
+@property (nonatomic, strong) id timeObserver;
 
 @end
 
@@ -27,9 +30,9 @@
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor blackColor];
     
-    _isHidden = NO;
-    [self setUpUI];
-    [self loadImage];
+    self.isHidden = NO;
+    [self configUI];
+    [self configAsset];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -45,7 +48,7 @@
 }
 
 #pragma mark - 设置UI
-- (void)setUpUI
+- (void)configUI
 {
     // 滚动视图
     _scrollView = [[UIScrollView alloc] initWithFrame:self.view.bounds];
@@ -62,12 +65,12 @@
 
     CGFloat top = kStatusHeight;
     CGFloat topH = kTopHeight;
-    _titleView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, topH)];
+    _titleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, topH)];
     _titleView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
     [self.view addSubview:_titleView];
     
     // 返回按钮
-    UIImage * image = [UIImage imageNamed:MMSrcName(@"mmphoto_back")];
+    UIImage * image = [UIImage imageNamed:@"mmphoto_back"];
     UIButton * backBtn = [[UIButton alloc] initWithFrame:CGRectMake(10, top, kNavHeight, kNavHeight)];
     [backBtn setImage:image forState:UIControlStateNormal];
     [backBtn setImageEdgeInsets:UIEdgeInsetsMake((kNavHeight-image.size.height)/2, 0, (kNavHeight-image.size.height)/2, 0)];
@@ -83,7 +86,7 @@
     [_titleView addSubview:_titleLab];
     
     // 删除按钮
-    image = [UIImage imageNamed:MMSrcName(@"mmphoto_delete")];
+    image = [UIImage imageNamed:@"mmphoto_delete"];
     UIButton * delBtn = [[UIButton alloc]initWithFrame:CGRectMake(_titleView.width-kNavHeight, top, kNavHeight, kNavHeight)];
     [delBtn setImage:image forState:UIControlStateNormal];
     [delBtn setImageEdgeInsets:UIEdgeInsetsMake((kNavHeight-image.size.height)/2, 0, (kNavHeight-image.size.height)/2, 0)];
@@ -104,9 +107,7 @@
 #pragma mark - 手势处理
 - (void)doubleTapGestureCallback:(UITapGestureRecognizer *)gesture
 {
-    CGFloat pageWidth = _scrollView.frame.size.width;
-    _index = floor((_scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
-    
+    [self resetIndex];
     UIScrollView *scrollView = [_scrollView viewWithTag:100+_index];
     CGFloat zoomScale = scrollView.zoomScale;
     if (zoomScale == scrollView.maximumZoomScale) {
@@ -121,9 +122,42 @@
 
 - (void)singleTapGestureCallback:(UITapGestureRecognizer *)gesture
 {
-    _isHidden = !_isHidden;
+    if (self.curPlayer) { // 控制播放
+        if (self.curPlayer.isPlaying) {
+            [self.curPlayer pause];
+            self.curPlayer.isPlaying = NO;
+            self.videoOverLay.hidden = NO;
+            self.isHidden = NO;
+        } else {
+            [self.curPlayer play];
+            self.curPlayer.isPlaying = YES;
+            self.videoOverLay.hidden = YES;
+            self.isHidden = YES;
+            
+            // 播放结束
+            WS(wSelf);
+            _timeObserver = [self.curPlayer addPeriodicTimeObserverForInterval:CMTimeMake(1.0, 1.0) queue:dispatch_get_main_queue() usingBlock:^(CMTime time) {
+                if (time.value == self.curPlayer.duration.value) {
+                    [wSelf.curPlayer pause];
+                    wSelf.curPlayer.isPlaying = NO;
+                    wSelf.videoOverLay.hidden = NO;
+                    wSelf.isHidden = NO;
+                    [wSelf.curPlayer seekToTime:kCMTimeZero];
+                    if (wSelf.timeObserver) {
+                        [wSelf.curPlayer removeTimeObserver:wSelf.timeObserver];
+                        wSelf.timeObserver = nil;
+                    }
+                    [UIView animateWithDuration:0.5 animations:^{
+                        wSelf.titleView.hidden = wSelf.isHidden;
+                    }];
+                }
+            }];
+        }
+    } else {
+        self.isHidden = !self.isHidden;
+    }
     [UIView animateWithDuration:0.5 animations:^{
-        self.titleView.hidden = _isHidden;
+        self.titleView.hidden = self.isHidden;
     }];
 }
 
@@ -139,9 +173,9 @@
     PHAsset * asset = [self.assetArray objectAtIndex:_index];
     [self deleteImage];
     [self.assetArray removeObjectAtIndex:_index];
+    [self.playerArray removeObjectAtIndex:_index];
     // 更新索引
-    CGFloat pageWidth = _scrollView.frame.size.width;
-    _index = floor((_scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
+    [self resetIndex];
     _titleLab.text = [NSString stringWithFormat:@"%ld/%ld",(long)_index+1,(long)[self.assetArray count]];
     // block
     if (self.photoDeleteBlock) {
@@ -154,47 +188,90 @@
 }
 
 #pragma mark - 图像加载|移除
-- (void)loadImage
+- (void)configAsset
 {
-    // 重新添加
     NSInteger count = [self.assetArray count];
-    for (int i = 0; i < count; i ++)
-    {
-        PHAsset * asset = [self.assetArray objectAtIndex:i];
-        [MMPhotoUtil getImageWithAsset:asset completion:^(UIImage *image) {
-            UIImageView * imageView = [[UIImageView alloc] initWithFrame:self.view.bounds];
-            imageView.image = image;
-            imageView.clipsToBounds  = YES;
-            imageView.contentMode = UIViewContentModeScaleAspectFit;
-            imageView.contentScaleFactor = [[UIScreen mainScreen] scale];
-            imageView.backgroundColor = [UIColor clearColor];
+    [_scrollView setPagingEnabled:YES];
+    [_scrollView setContentSize:CGSizeMake(_scrollView.width * count, _scrollView.height)];
+    self.curPlayer = nil;
+    self.playerArray = [[NSMutableArray alloc] initWithCapacity:count];
+    // 添加图片|视频
+    [self loadAsset:0 totalNum:count];
+}
+
+- (void)loadAsset:(NSInteger)assetIndex totalNum:(NSInteger)count
+{
+    PHAsset * asset = [self.assetArray objectAtIndex:assetIndex];
+    // asset --> 图片|视频
+    [MMPhotoUtil getInfoWithAsset:asset completion:^(NSDictionary *info) {
+        
+        GCD_MAIN(^{   // 主线程
+            
             // 用于图片的捏合缩放
-            UIScrollView * scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(_scrollView.width * i, 0, _scrollView.width, _scrollView.height)];
+            UIScrollView * scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(_scrollView.width * assetIndex, 0, _scrollView.width, _scrollView.height)];
             scrollView.contentSize = CGSizeMake(scrollView.width, scrollView.height);
             scrollView.minimumZoomScale = 1.0;
             scrollView.delegate = self;
             scrollView.showsHorizontalScrollIndicator = NO;
             scrollView.showsVerticalScrollIndicator = NO;
             scrollView.backgroundColor = [UIColor clearColor];
-            scrollView.tag = 100 + i;
-            [scrollView addSubview:imageView];
+            scrollView.tag = 100 + assetIndex;
             
-            CGSize imgSize = [imageView.image size];
-            CGFloat scaleX = self.view.width/imgSize.width;
-            CGFloat scaleY = self.view.height/imgSize.height;
-            if (scaleX > scaleY) {
-                CGFloat imgViewWidth = imgSize.width*scaleY;
-                scrollView.maximumZoomScale = self.view.width/imgViewWidth;
-            } else {
-                CGFloat imgViewHeight = imgSize.height*scaleX;
-                scrollView.maximumZoomScale = self.view.height/imgViewHeight;
+            // == 图片
+            if (asset.mediaType == PHAssetMediaTypeImage)
+            {
+                UIImageView * imageView = [[UIImageView alloc] initWithFrame:self.view.bounds];
+                imageView.image = [info objectForKey:MMPhotoOriginalImage];
+                imageView.clipsToBounds  = YES;
+                imageView.contentMode = UIViewContentModeScaleAspectFit;
+                imageView.contentScaleFactor = [[UIScreen mainScreen] scale];
+                imageView.backgroundColor = [UIColor clearColor];
+                imageView.tag = 1000;
+                [scrollView addSubview:imageView];
+                
+                CGSize imgSize = [imageView.image size];
+                CGFloat scaleX = self.view.width/imgSize.width;
+                CGFloat scaleY = self.view.height/imgSize.height;
+                if (scaleX > scaleY) {
+                    CGFloat imgViewWidth = imgSize.width * scaleY;
+                    scrollView.maximumZoomScale = self.view.width/imgViewWidth;
+                } else {
+                    CGFloat imgViewHeight = imgSize.height * scaleX;
+                    scrollView.maximumZoomScale = self.view.height/imgViewHeight;
+                }
+                [self.playerArray addObject:@"占位"];
             }
-            
+            else // == 视频
+            {
+                NSURL * videoURL = [info objectForKey:MMPhotoVideoURL];
+                AVPlayerItem * playerItem  = [[AVPlayerItem alloc] initWithURL:videoURL];
+                MMAVPlayer * player = [[MMAVPlayer alloc] initWithPlayerItem:playerItem];
+                player.isPlaying = NO;
+                player.duration = playerItem.asset.duration;
+                AVPlayerLayer * playerLayer = [AVPlayerLayer playerLayerWithPlayer:player];
+                playerLayer.frame = scrollView.bounds;
+                playerLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+                [scrollView.layer addSublayer:playerLayer];
+                
+                UIImageView * videoImgV = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"mmphoto_video"]];
+                videoImgV.tag = 2000;
+                videoImgV.center = CGPointMake(scrollView.width/2.0, scrollView.height/2.0);
+                [scrollView addSubview:videoImgV];
+                scrollView.maximumZoomScale = 1.0; // 不可缩放
+                [self.playerArray addObject:player];
+                
+                if (assetIndex == 0) {
+                    self.curPlayer = player;
+                    self.videoOverLay = videoImgV;
+                }
+            }
             [_scrollView addSubview:scrollView];
-        }];
-    }
-    [_scrollView setPagingEnabled:YES];
-    [_scrollView setContentSize:CGSizeMake(_scrollView.width * count, _scrollView.height)];
+            // 处理下一个
+            if (assetIndex != count - 1) {
+                [self loadAsset:assetIndex + 1 totalNum:count];
+            }
+        });
+    }];
 }
 
 - (void)deleteImage
@@ -231,17 +308,44 @@
     [_scrollView setContentSize:CGSizeMake(_scrollView.width * (count-1), _scrollView.height)];
 }
 
+- (void)resetIndex
+{
+    CGFloat pageWidth = _scrollView.frame.size.width;
+    _index = floor((_scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
+}
+
 #pragma mark - UIScrollViewDelegate
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
 {
-    return [scrollView.subviews objectAtIndex:0];
+    return [scrollView viewWithTag:1000];
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-    CGFloat pageWidth = _scrollView.frame.size.width;
-    _index = floor((_scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
+    [self resetIndex];
     _titleLab.text = [NSString stringWithFormat:@"%ld/%ld",(long)_index + 1,(long)[self.assetArray count]];
+
+    // 将上一个暂停，记录当前
+    if (self.curPlayer) {
+        [self.curPlayer pause];
+        [self.curPlayer seekToTime:kCMTimeZero];
+        if (self.timeObserver) {
+            [self.curPlayer removeTimeObserver:self.timeObserver];
+            self.timeObserver = nil;
+        }
+        self.videoOverLay.hidden = NO;
+    }
+    NSObject * obj = [self.playerArray objectAtIndex:_index];
+    if ([obj isKindOfClass:[MMAVPlayer class]]) {
+        UIScrollView * scrollView = [_scrollView viewWithTag:100+_index];
+        self.videoOverLay = [scrollView viewWithTag:2000];
+        self.videoOverLay.hidden = NO;
+        self.curPlayer = (MMAVPlayer *)obj;
+        self.curPlayer.isPlaying = NO;
+    } else {
+        self.curPlayer = nil;
+        self.videoOverLay = nil;
+    }
 }
 
 #pragma mark -
@@ -249,5 +353,10 @@
 {
     [super didReceiveMemoryWarning];
 }
+
+@end
+
+
+@implementation MMAVPlayer
 
 @end

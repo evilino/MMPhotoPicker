@@ -1,16 +1,16 @@
 
 Pod::Spec.new do |s|
   s.name             = "MMPhotoPicker"
-  s.version          = "1.5"
+  s.version          = "1.6"
   s.summary          = "A photo picker used on iOS."
-  s.homepage         = "https://github.com/CheeryLau/MMPhotoPicker"
+  s.homepage         = "https://github.com/ChellyLau/MMPhotoPicker"
   s.license          = 'MIT'
   s.author           = { "LEA" => "1625977078@qq.com" }
-  s.source           = { :git => "https://github.com/CheeryLau/MMPhotoPicker.git", :tag => s.version}
-  s.platform         = :ios, '7.0'
+  s.source           = { :git => "https://github.com/ChellyLau/MMPhotoPicker.git", :tag => s.version}
+  s.platform         = :ios, '8.0'
   s.requires_arc     = true
   s.source_files     = 'MMPhotoPicker/**/*.{h,m}'
-  s.resources        = 'MMPhotoPicker/**/MMPhotoPicker.bundle'
+  s.resources        = 'MMPhotoPicker/**/MMPhotoPicker.xcassets'
   s.frameworks       = 'Foundation', 'UIKit', 'Photos'
 
 end

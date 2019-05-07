@@ -28,11 +28,13 @@ static CGFloat rowHeight = 60.f;
     self = [super init];
     if (self) {
         _isOrigin = NO;
-        _cropImageOption = NO;
-        _singleImageOption = NO;
-        _showOriginImageOption = NO;
+        _cropOption = NO;
+        _singleOption = NO;
+        _showEmptyAlbum = NO;
+        _showVideo = NO;
+        _showOriginOption = NO;
         _mainColor = kMainColor;
-        _maximumNumberOfImage = 9;
+        _maxNumber = 9;
     }
     return self;
 }
@@ -45,10 +47,15 @@ static CGFloat rowHeight = 60.f;
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"取消" style:UIBarButtonItemStylePlain target:self action:@selector(barButtonItemAction:)];
     [self.view addSubview:self.tableView];
    
+    // 特殊处理(不支持视频裁剪)
+    if (_cropOption) {
+        _showVideo = NO;
+    }
     // 相册权限
-    PHAuthorizationStatus oldStatus = [PHPhotoLibrary authorizationStatus];
+    PHAuthorizationStatus authStatus = [PHPhotoLibrary authorizationStatus];
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-        dispatch_async(dispatch_get_main_queue(), ^{
+        
+        GCD_MAIN(^{ // 主线程
             switch (status) {
                 case PHAuthorizationStatusAuthorized: { // 权限打开
                     [self loadAlbumData]; // 加载相册
@@ -56,15 +63,11 @@ static CGFloat rowHeight = 60.f;
                 }
                 case PHAuthorizationStatusDenied: // 权限拒绝
                 case PHAuthorizationStatusRestricted: { // 权限受限
-                    if (oldStatus == PHAuthorizationStatusNotDetermined) {
+                    if (authStatus == PHAuthorizationStatusNotDetermined) {
                         [self barButtonItemAction:nil]; // 返回
                         return;
                     }
-                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
-                                                                    message:@"请在设置>隐私>照片中开启权限"
-                                                                   delegate:self
-                                                          cancelButtonTitle:@"知道了"
-                                                          otherButtonTitles:nil, nil];
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示" message:@"请在设置>隐私>照片中开启权限" delegate:self cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
                     [alert show];
                     break;
                 }
@@ -75,16 +78,21 @@ static CGFloat rowHeight = 60.f;
     }];
 }
 
+#pragma mark - 相册列表
 - (void)loadAlbumData
 {
     self.photoAlbums = [[NSMutableArray alloc] init];
     // 获取智能相册
     PHFetchResult * smartAlbums = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
     [smartAlbums enumerateObjectsUsingBlock:^(PHAssetCollection * _Nonnull collection, NSUInteger idx, BOOL *stop) {
-        // 过滤掉已隐藏、视频、最近删除
-        if (collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumAllHidden && collection.assetCollectionSubtype !=  PHAssetCollectionSubtypeSmartAlbumVideos && collection.assetCollectionSubtype != 1000000201)
+        // 过滤掉已隐藏、最近删除
+        BOOL condition = (collection.assetCollectionSubtype != PHAssetCollectionSubtypeSmartAlbumAllHidden) && (collection.assetCollectionSubtype != 1000000201);
+        if (!self.showVideo) { // 过滤掉视频
+            condition = condition && (collection.assetCollectionSubtype !=  PHAssetCollectionSubtypeSmartAlbumVideos);
+        }
+        if (condition)
         {
-            NSArray<PHAsset *> * assets = [MMPhotoUtil getAllAssetWithAssetCollection:collection ascending:NO];
+            NSArray<PHAsset *> * assets = [MMPhotoUtil getAllAssetWithCollection:collection ascending:NO];
             if (!self.showEmptyAlbum) { // 不显示空相册
                 if ([assets count]) {
                     MMPhotoAlbum * album = [[MMPhotoAlbum alloc] init];
@@ -121,7 +129,7 @@ static CGFloat rowHeight = 60.f;
     // 获取用户创建相册
     PHFetchResult * userAlbums = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeSmartAlbumUserLibrary options:nil];
     [userAlbums enumerateObjectsUsingBlock:^(PHAssetCollection * _Nonnull collection, NSUInteger idx, BOOL * _Nonnull stop) {
-        NSArray<PHAsset *> * assets = [MMPhotoUtil getAllAssetWithAssetCollection:collection ascending:NO];
+        NSArray<PHAsset *> * assets = [MMPhotoUtil getAllAssetWithCollection:collection ascending:NO];
         if (assets.count > 0) {
             MMPhotoAlbum * album = [[MMPhotoAlbum alloc] init];
             album.name = collection.localizedTitle;
@@ -133,29 +141,38 @@ static CGFloat rowHeight = 60.f;
     }];
     [self.tableView reloadData];
     // 跳转
-    [self pushAlbumByPhotoAlbum:_selectPhotoAlbum animated:NO];
+    [self jumpToAlbum:_selectPhotoAlbum animated:NO];
 }
 
-#pragma mark - lazy load
-- (UITableView *)tableView
+#pragma mark - 跳转
+- (void)jumpToAlbum:(MMPhotoAlbum *)photoAlbum animated:(BOOL)animated
 {
-    if (!_tableView) {
-        _tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height-kTopHeight) style:UITableViewStyleGrouped];
-        _tableView.delegate = self;
-        _tableView.dataSource = self;
-        _tableView.rowHeight = rowHeight;
-        _tableView.showsHorizontalScrollIndicator = NO;
-        _tableView.backgroundColor = [UIColor clearColor];
-        _tableView.separatorColor = [[UIColor lightGrayColor] colorWithAlphaComponent:0.5];
-        _tableView.tableFooterView = [UIView new];
-        _tableView.estimatedRowHeight = 0;
-        _tableView.estimatedSectionHeaderHeight = 0;
-        _tableView.estimatedSectionFooterHeight = 0;
-        if (@available(iOS 11.0, *)) {
-            _tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    MMPhotoAssetController * controller = [[MMPhotoAssetController alloc] init];
+    controller.photoAlbum = photoAlbum;
+    controller.mainColor = self.mainColor;
+    controller.maxNumber = self.maxNumber;
+    controller.showOriginOption = self.showOriginOption;
+    controller.showVideo = self.showVideo;
+    controller.singleOption = self.singleOption;
+    controller.cropOption = self.cropOption;
+    controller.cropSize = self.cropSize;
+    
+    WS(wSelf);
+    [controller setCompletion:^(NSArray *info, BOOL isOrigin, BOOL isCancel){
+        wSelf.isOrigin = isOrigin;
+        if (isCancel) { // 取消
+            if ([wSelf.delegate respondsToSelector:@selector(mmPhotoPickerControllerDidCancel:)]) {
+                [wSelf.delegate mmPhotoPickerControllerDidCancel:wSelf];
+            } else {
+                [wSelf dismissViewControllerAnimated:YES completion:nil];
+            }
+        } else { // 确认选择
+            if ([wSelf.delegate respondsToSelector:@selector(mmPhotoPickerController:didFinishPickingMediaWithInfo:)]) {
+                [wSelf.delegate mmPhotoPickerController:wSelf didFinishPickingMediaWithInfo:info];
+            }
         }
-    }
-    return _tableView;
+    }];
+    [self.navigationController pushViewController:controller animated:animated];
 }
 
 #pragma mark - 取消
@@ -192,11 +209,11 @@ static CGFloat rowHeight = 60.f;
     // 封面
     MMPhotoAlbum * album = [self.photoAlbums objectAtIndex:indexPath.row];
     if (album.coverAsset) {
-        [MMPhotoUtil getImageWithAsset:album.coverAsset size:cell.imageView.size completion:^(UIImage *image) {
+        [MMPhotoUtil getImageWithAsset:album.coverAsset imageSize:cell.imageView.size completion:^(UIImage *image) {
             cell.imageView.image = image;
         }];
     } else {
-        cell.imageView.image = [UIImage imageNamed:MMSrcName(@"mmphoto_empty")];
+        cell.imageView.image = [UIImage imageNamed:@"mmphoto_empty"];
     }
     // 数量
     NSString * text = [NSString stringWithFormat:@"%@  (%ld)",album.name, (long)album.assetCount];
@@ -222,38 +239,8 @@ static CGFloat rowHeight = 60.f;
 {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     // 跳转
-    MMPhotoAlbum *photoAlbum = [self.photoAlbums objectAtIndex:indexPath.row];
-    [self pushAlbumByPhotoAlbum:photoAlbum animated:YES];
-}
-
-#pragma mark - 跳转
-- (void)pushAlbumByPhotoAlbum:(MMPhotoAlbum *)photoAlbum animated:(BOOL)animated
-{
-    MMPhotoAssetController * controller = [[MMPhotoAssetController alloc] init];
-    controller.photoAlbum = photoAlbum;
-    controller.mainColor = self.mainColor;
-    controller.maximumNumberOfImage = self.maximumNumberOfImage;
-    controller.showOriginImageOption = self.showOriginImageOption;
-    controller.singleImageOption = self.singleImageOption;
-    controller.cropImageOption = self.cropImageOption;
-    controller.imageCropSize = self.imageCropSize;
-    
-    WS(wSelf);
-    [controller setCompletion:^(NSArray *info, BOOL isOrigin, BOOL isCancel){
-        wSelf.isOrigin = isOrigin;
-        if (isCancel) { // 取消
-            if ([wSelf.delegate respondsToSelector:@selector(mmPhotoPickerControllerDidCancel:)]) {
-                [wSelf.delegate mmPhotoPickerControllerDidCancel:wSelf];
-            } else {
-                [wSelf dismissViewControllerAnimated:YES completion:nil];
-            }
-        } else { // 确认选择
-            if ([wSelf.delegate respondsToSelector:@selector(mmPhotoPickerController:didFinishPickingMediaWithInfo:)]) {
-                [wSelf.delegate mmPhotoPickerController:wSelf didFinishPickingMediaWithInfo:info];
-            }
-        }
-    }];
-    [self.navigationController pushViewController:controller animated:animated];
+    MMPhotoAlbum * album = [self.photoAlbums objectAtIndex:indexPath.row];
+    [self jumpToAlbum:album animated:YES];
 }
 
 #pragma mark - UIAlertViewDelegate
@@ -262,7 +249,29 @@ static CGFloat rowHeight = 60.f;
     [self barButtonItemAction:nil];
 }
 
-#pragma mark - 内存警告
+#pragma mark - lazy load
+- (UITableView *)tableView
+{
+    if (!_tableView) {
+        _tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height-kTopHeight) style:UITableViewStyleGrouped];
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        _tableView.rowHeight = rowHeight;
+        _tableView.showsHorizontalScrollIndicator = NO;
+        _tableView.backgroundColor = [UIColor clearColor];
+        _tableView.separatorColor = [[UIColor lightGrayColor] colorWithAlphaComponent:0.5];
+        _tableView.tableFooterView = [UIView new];
+        _tableView.estimatedRowHeight = 0;
+        _tableView.estimatedSectionHeaderHeight = 0;
+        _tableView.estimatedSectionFooterHeight = 0;
+        if (@available(iOS 11.0, *)) {
+            _tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
+    }
+    return _tableView;
+}
+
+#pragma mark -
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];

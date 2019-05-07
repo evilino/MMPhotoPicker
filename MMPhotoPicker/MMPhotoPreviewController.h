@@ -10,6 +10,7 @@
 
 #import <UIKit/UIKit.h>
 #import <Photos/Photos.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface MMPhotoPreviewController : UIViewController
 
@@ -17,3 +18,14 @@
 @property (nonatomic, copy) void(^photoDeleteBlock)(PHAsset * asset);
 
 @end
+
+
+@interface MMAVPlayer : AVPlayer
+
+// 正在播放
+@property (nonatomic, assign) BOOL isPlaying;
+// 视频时长
+@property (nonatomic, assign) CMTime duration;
+
+@end
+

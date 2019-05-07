@@ -14,6 +14,6 @@
 
 @interface PhotoCell : UICollectionViewCell
 
-@property (nonatomic, strong) UIImage * image;
+@property (nonatomic, strong) NSDictionary * info;
 
 @end

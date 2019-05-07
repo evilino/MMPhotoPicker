@@ -13,7 +13,7 @@ static NSString * const CellIdentifier = @"PhotoCell";
 @interface ViewController () <MMPhotoPickerDelegate,UICollectionViewDelegate,UICollectionViewDataSource>
 
 @property (nonatomic, strong) UICollectionView * collectionView;
-@property (nonatomic, strong) NSMutableArray * imageArray;
+@property (nonatomic, strong) NSMutableArray * infoArray;
 
 @end
 
@@ -27,7 +27,7 @@ static NSString * const CellIdentifier = @"PhotoCell";
     CGFloat margin = (self.view.width - 2 * 100) / 3.0;
     
     // 选择图片
-    UIButton *btn = [[UIButton alloc] initWithFrame:CGRectMake(margin, 50, 100, 44)];
+    UIButton * btn = [[UIButton alloc] initWithFrame:CGRectMake(margin, 50, 100, 44)];
     btn.backgroundColor = [UIColor lightGrayColor];
     [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [btn setTitle:@"选择图片" forState:UIControlStateNormal];
@@ -43,19 +43,23 @@ static NSString * const CellIdentifier = @"PhotoCell";
     [self.view addSubview:btn];
    
     // 图片显示
-    self.imageArray = [[NSMutableArray alloc] init];
+    self.infoArray = [[NSMutableArray alloc] init];
     [self.view addSubview:self.collectionView];
 }
 
 #pragma mark - click
 - (void)pickerClicked
 {
+    // 优先级 cropOption > singleOption > maxNumber
+    // cropOption = YES 时，不显示视频
     MMPhotoPickerController * controller = [[MMPhotoPickerController alloc] init];
     controller.delegate = self;
     controller.showEmptyAlbum = YES;
-    controller.maximumNumberOfImage = 9;
-//    controller.cropImageOption = YES;
-//    controller.singleImageOption = YES;
+    controller.showVideo = YES;
+    controller.cropOption = NO;
+    controller.singleOption = NO;
+    controller.maxNumber = 6;
+    
     UINavigationController * navigation = [[UINavigationController alloc] initWithRootViewController:controller];
     [navigation.navigationBar setBackgroundImage:[UIImage imageNamed:@"default_bar"] forBarMetrics:UIBarMetricsDefault];
     navigation.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor whiteColor],NSFontAttributeName:[UIFont boldSystemFontOfSize:19.0]};
@@ -66,8 +70,8 @@ static NSString * const CellIdentifier = @"PhotoCell";
 
 - (void)saveClicked
 {
-    UIImage * image = [UIImage imageNamed:@"IMG_4808.JPG"];
-    [MMPhotoUtil writeImageToPhotoAlbum:image completionHandler:^(BOOL success) {
+    UIImage * image = [UIImage imageNamed:@"default_save"];
+    [MMPhotoUtil saveImage:image completion:^(BOOL success) {
         NSString * message = nil;
         if (success) {
             message = @"图片保存成功";
@@ -109,14 +113,15 @@ static NSString * const CellIdentifier = @"PhotoCell";
 #pragma mark - MMPhotoPickerDelegate
 - (void)mmPhotoPickerController:(MMPhotoPickerController *)picker didFinishPickingMediaWithInfo:(NSArray *)info
 {
-    [self.imageArray removeAllObjects];
+    [self.infoArray removeAllObjects];
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        for (int i = 0; i < [info count]; i ++)  {
-            NSDictionary * dict = [info objectAtIndex:i];
+        
+        // 图片压缩一下，不然大图显示太慢
+        for (int i = 0; i < [info count]; i ++)
+        {
+            NSMutableDictionary * dict = [NSMutableDictionary dictionaryWithDictionary:[info objectAtIndex:i]];
             UIImage * image = [dict objectForKey:MMPhotoOriginalImage];
-            if (picker.isOrigin) { // 原图
-                [self.imageArray addObject:image];
-            } else {
+            if (!picker.isOrigin) { // 原图
                 NSData * imageData = UIImageJPEGRepresentation(image,1.0);
                 int size = (int)[imageData length]/1024;
                 if (size < 100) {
@@ -125,10 +130,12 @@ static NSString * const CellIdentifier = @"PhotoCell";
                     imageData = UIImageJPEGRepresentation(image, 0.1);
                 }
                 image = [UIImage imageWithData:imageData];
-                [self.imageArray addObject:image];
             }
+            [dict setObject:image forKey:MMPhotoOriginalImage];
+            [self.infoArray addObject:dict];
         }
-        dispatch_async(dispatch_get_main_queue(), ^{
+        
+        GCD_MAIN(^{ // 主线程
             [self.collectionView reloadData];
             [picker dismissViewControllerAnimated:YES completion:nil];
         });
@@ -148,14 +155,14 @@ static NSString * const CellIdentifier = @"PhotoCell";
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    return self.imageArray.count;
+    return self.infoArray.count;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     // 赋值
     PhotoCell * cell = [collectionView dequeueReusableCellWithReuseIdentifier:CellIdentifier forIndexPath:indexPath];
-    cell.image = [self.imageArray objectAtIndex:indexPath.row];
+    cell.info = [self.infoArray objectAtIndex:indexPath.row];
     return cell;
 }
 
@@ -172,6 +179,7 @@ static NSString * const CellIdentifier = @"PhotoCell";
 @interface PhotoCell ()
 
 @property (nonatomic, strong) UIImageView * imageView;
+@property (nonatomic, strong) UIImageView * videoOverLay;
 
 @end
 
@@ -182,27 +190,34 @@ static NSString * const CellIdentifier = @"PhotoCell";
     self = [super initWithFrame:frame];
     if (self) {
         self.backgroundColor = [UIColor lightGrayColor];
-        [self addSubview:self.imageView];
-    }
-    return self;
-}
-
-#pragma mark - lazy load
-- (UIImageView *)imageView
-{
-    if (!_imageView) {
+        
         _imageView = [[UIImageView alloc] initWithFrame:self.bounds];
         _imageView.layer.masksToBounds = YES;
         _imageView.clipsToBounds = YES;
         _imageView.contentMode = UIViewContentModeScaleAspectFill;
         _imageView.contentScaleFactor = [[UIScreen mainScreen] scale];
+        [self addSubview:_imageView];
+        
+        _videoOverLay = [[UIImageView alloc] init];
+        _videoOverLay.size = CGSizeMake(_imageView.width * 0.4, _imageView.height * 0.4);
+        _videoOverLay.center = _imageView.center;
+        _videoOverLay.image = [UIImage imageNamed:@"mmphoto_video"];
+        [self addSubview:_videoOverLay];
+        _videoOverLay.hidden = YES;
     }
-    return _imageView;
+    return self;
 }
 
-- (void)setImage:(UIImage *)image
+#pragma mark - setter
+- (void)setInfo:(NSDictionary *)info
 {
-    self.imageView.image = image;
+    PHAssetMediaType mediaType = [[info objectForKey:MMPhotoMediaType] integerValue];
+    if (mediaType == PHAssetMediaTypeVideo) {
+        self.videoOverLay.hidden = NO;
+    } else {
+        self.videoOverLay.hidden = YES;
+    }
+    self.imageView.image = [info objectForKey:MMPhotoOriginalImage];
 }
 
 @end

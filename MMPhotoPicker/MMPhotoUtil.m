@@ -7,13 +7,20 @@
 //
 
 #import "MMPhotoUtil.h"
+#import "MMPhotoPickerMacros.h"
 
-static NSString * kPhotoAlbum = @"PhotoDemo";
+static NSString * kPhotoAlbum = @"MMPhotoPicker";
 
 @implementation MMPhotoUtil
 
+// 主线程执行
+void GCD_MAIN(dispatch_block_t block)
+{
+    dispatch_async(dispatch_get_main_queue(), block);
+}
+
 // 保存图片到自定义相册
-+ (void)writeImageToPhotoAlbum:(UIImage *)image completionHandler:(void(^)(BOOL success))completionHandler
++ (void)saveImage:(UIImage *)image completion:(void(^)(BOOL success))completion
 {
     PHAuthorizationStatus oldStatus = [PHPhotoLibrary authorizationStatus];
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
@@ -47,8 +54,8 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
                 } completionHandler:^(BOOL success, NSError * _Nullable error) {
                     if (!success) {
                         NSLog(@"保存至【相机胶卷】失败");
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            if (completionHandler) completionHandler(NO);
+                        GCD_MAIN(^{ // 主线程
+                            if (completion) completion(NO);
                         });
                         return ;
                     }
@@ -61,8 +68,8 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
                         if (!success) {
                             NSLog(@"保存【自定义相册】失败");
                         }
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            if (completionHandler) completionHandler(success);
+                        GCD_MAIN(^{ // 主线程
+                            if (completion) completion(success);
                         });
                     }];
                 }];
@@ -74,12 +81,8 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
                 if (oldStatus == PHAuthorizationStatusNotDetermined) {
                     return;
                 }
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"提示"
-                                                                     message:@"请在设置>隐私>照片中开启权限"
-                                                                    delegate:nil
-                                                           cancelButtonTitle:@"知道了"
-                                                           otherButtonTitles:nil, nil];
+                GCD_MAIN(^{ // 主线程 
+                    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"提示" message:@"请在设置>隐私>照片中开启权限" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
                     [alert show];
                 });
                 break;
@@ -91,7 +94,7 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
 }
 
 // 保存视频到自定义相册
-+ (void)writeVideoToPhotoAlbum:(NSURL *)videoURL completionHandler:(void(^)(BOOL success))completionHandler
++ (void)saveVideo:(NSURL *)videoURL completion:(void(^)(BOOL success))completion
 {
     PHAuthorizationStatus oldStatus = [PHPhotoLibrary authorizationStatus];
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
@@ -125,8 +128,8 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
                 } completionHandler:^(BOOL success, NSError * _Nullable error) {
                     if (!success) {
                         NSLog(@"保存至【相机胶卷】失败");
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            if (completionHandler) completionHandler(NO);
+                        GCD_MAIN(^{ // 主线程
+                            if (completion) completion(NO);
                         });
                         return ;
                     }
@@ -139,8 +142,8 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
                         if (!success) {
                             NSLog(@"保存【自定义相册】失败");
                         }
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            if (completionHandler) completionHandler(success);
+                        GCD_MAIN(^{ // 主线程
+                            if (completion) completion(success);
                         });
                     }];
                 }];
@@ -152,12 +155,8 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
                 if (oldStatus == PHAuthorizationStatusNotDetermined) {
                     return;
                 }
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"提示"
-                                                                     message:@"请在设置>隐私>照片中开启权限"
-                                                                    delegate:nil
-                                                           cancelButtonTitle:@"知道了"
-                                                           otherButtonTitles:nil, nil];
+                GCD_MAIN(^{ // 主线程
+                    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"提示" message:@"请在设置>隐私>照片中开启权限" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
                     [alert show];
                 });
                 break;
@@ -169,7 +168,7 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
 }
 
 // 获取指定相册中照片
-+ (NSArray<PHAsset *> *)getAllAssetWithAssetCollection:(PHAssetCollection *)assetCollection ascending:(BOOL)ascending
++ (NSArray<PHAsset *> *)getAllAssetWithCollection:(PHAssetCollection *)assetCollection ascending:(BOOL)ascending
 {
     // ascending:按照片创建时间排序 >> YES:升序 NO:降序
     NSMutableArray<PHAsset *> * assets = [NSMutableArray array];
@@ -177,7 +176,7 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
     option.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:ascending]];
     PHFetchResult * result = [PHAsset fetchAssetsInAssetCollection:assetCollection options:option];
     [result enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if (((PHAsset *)obj).mediaType == PHAssetMediaTypeImage) {
+        if (((PHAsset *)obj).mediaType == PHAssetMediaTypeImage || ((PHAsset *)obj).mediaType == PHAssetMediaTypeVideo) {
             [assets addObject:obj];
         }
     }];
@@ -185,7 +184,7 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
 }
 
 // 获取asset对应的图片
-+ (void)getImageWithAsset:(PHAsset *)asset size:(CGSize)size completion:(void (^)(UIImage *image))completion
++ (void)getImageWithAsset:(PHAsset *)asset imageSize:(CGSize)size completion:(void (^)(UIImage *image))completion
 {
     PHImageRequestOptions * option = [[PHImageRequestOptions alloc] init];
     option.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
@@ -195,16 +194,53 @@ static NSString * kPhotoAlbum = @"PhotoDemo";
     }];
 }
 
-// 获取asset对应的图片
-+ (void)getImageWithAsset:(PHAsset *)asset completion:(void (^)(UIImage *image))completion
+// 获取asset对应图片|视频信息
++ (void)getInfoWithAsset:(PHAsset *)phAsset completion:(void (^)(NSDictionary *info))completion
 {
+    NSMutableDictionary * assetInfo = [[NSMutableDictionary alloc] init];
+    [assetInfo setObject:@(phAsset.mediaType) forKey:MMPhotoMediaType];
+    if (phAsset.location) {
+        [assetInfo setObject:phAsset.location forKey:MMPhotoLocation];
+    }
+    // == 请求图片和视频资源
     PHImageRequestOptions * option = [[PHImageRequestOptions alloc] init];
     option.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
     option.networkAccessAllowed = YES;
-    [[PHCachingImageManager defaultManager] requestImageDataForAsset:asset options:option resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
-        UIImage *image = [UIImage imageWithData:imageData];
-        if (completion) completion(image);
+    
+    PHImageManager * manager = [PHImageManager defaultManager];
+    [manager requestImageDataForAsset:phAsset options:option resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
+        // == 图片
+        UIImage * image = [UIImage imageWithData:imageData];
+        [assetInfo setObject:image forKey:MMPhotoOriginalImage];
+        [assetInfo setObject:@(orientation) forKey:MMPhotoOrientation];
+        // == 视频
+        if (phAsset.mediaType == PHAssetMediaTypeVideo) {
+            [manager requestAVAssetForVideo:phAsset options:nil resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
+                NSURL * videoURL = ((AVURLAsset *)asset).URL;
+                [assetInfo setObject:videoURL forKey:MMPhotoVideoURL];
+                if (completion) completion(assetInfo);
+            }];
+        } else {
+            if (completion) completion(assetInfo);
+        }
     }];
+}
+
+// 获取视频时长(不适用视频时长超过xx:xx:xx这个格式)
++ (NSString *)getDurationFormat:(NSInteger)duration
+{
+    NSInteger second = duration % 60;  // 秒
+    NSInteger minute = duration / 60; // 分
+    NSInteger hour = minute / 60; // 时
+    minute = minute % 60;
+    
+    NSString * format = nil;
+    if (hour == 0) {
+        format = [NSString stringWithFormat:@"%02ld:%02ld",(long)minute,(long)second];
+    } else {
+        format = [NSString stringWithFormat:@"%02ld:%02ld:%02ld",(long)hour,(long)minute,(long)second];
+    }
+    return format;
 }
 
 + (UIImage *)fixOrientation:(UIImage *)aImage

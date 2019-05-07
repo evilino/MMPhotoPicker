@@ -12,64 +12,32 @@
 
 @interface MMPhotoUtil : NSObject
 
-/**
-  保存图片到自定义相册
+// 主线程执行
+void GCD_MAIN(dispatch_block_t block);
 
- @param image 图片
- @param completionHandler 保存成功与否
- */
-+ (void)writeImageToPhotoAlbum:(UIImage *)image
-             completionHandler:(void(^)(BOOL success))completionHandler;
+// 保存图片到自定义相册
++ (void)saveImage:(UIImage *)image completion:(void(^)(BOOL success))completion;
 
+// 保存视频到自定义相册
++ (void)saveVideo:(NSURL *)videoURL completion:(void(^)(BOOL success))completion;
 
-/**
- 保存视频到自定义相册
+// 获取指定相册中照片（ascending：按照片创建时间排序 >> YES:升序 NO:降序）
++ (NSArray<PHAsset *> *)getAllAssetWithCollection:(PHAssetCollection *)assetCollection
+                                        ascending:(BOOL)ascending;
 
- @param videoURL 视频路径URL
- @param completionHandler 保存成功与否
- */
-+ (void)writeVideoToPhotoAlbum:(NSURL *)videoURL
-             completionHandler:(void(^)(BOOL success))completionHandler;
-
-
-/**
- 获取指定相册中照片
-
- @param assetCollection 相册
- @param ascending 升序OR降序
- @return 排序后的集合
- */
-+ (NSArray<PHAsset *> *)getAllAssetWithAssetCollection:(PHAssetCollection *)assetCollection
-                                             ascending:(BOOL)ascending;
-
-/**
- 获取asset对应的图片
-
- @param asset asset
- @param size 图片size
- @param completion 图片
- */
+// 获取asset对应的图片
 + (void)getImageWithAsset:(PHAsset *)asset
-                     size:(CGSize)size
+                imageSize:(CGSize)size
                completion:(void (^)(UIImage *image))completion;
 
+// 获取asset对应图片|视频信息
++ (void)getInfoWithAsset:(PHAsset *)phAsset
+              completion:(void (^)(NSDictionary *info))completion;
 
-/**
- 获取asset对应图片
+// 获取视频时长
++ (NSString *)getDurationFormat:(NSInteger)duration;
 
- @param asset asset
- @param completion 图片
- */
-+ (void)getImageWithAsset:(PHAsset *)asset
-               completion:(void (^)(UIImage *image))completion;
-
-
-/**
- 调整图片方向
-
- @param aImage 原始图片
- @return 调整后的图片
- */
+// 调整图片方向
 + (UIImage *)fixOrientation:(UIImage *)aImage;
 
 @end

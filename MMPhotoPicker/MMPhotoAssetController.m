@@ -17,8 +17,7 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
 
 @property (nonatomic, strong) UICollectionView * collectionView;
 @property (nonatomic, strong) NSMutableArray<MMPHAsset *> * mmPHAssetArray;
-@property (nonatomic, strong) NSMutableArray<PHAsset *> * selectedAssetArray;
-
+@property (nonatomic, strong) NSMutableArray * selectedArray;
 @property (nonatomic, strong) UIView * bottomView;
 @property (nonatomic, strong) UIButton * previewBtn;
 @property (nonatomic, strong) UIButton * originBtn;
@@ -37,11 +36,12 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
     self = [super init];
     if (self) {
         _isOrigin = NO;
-        _cropImageOption = NO;
-        _singleImageOption = NO;
-        _showOriginImageOption = NO;
+        _cropOption = NO;
+        _singleOption = NO;
+        _showVideo = NO;
+        _showOriginOption = NO;
         _mainColor = kMainColor;
-        _maximumNumberOfImage = 9;
+        _maxNumber = 9;
     }
     return self;
 }
@@ -58,32 +58,197 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
     if (!_mainColor) {
         _mainColor = kMainColor;
     }
-    if (_maximumNumberOfImage == 0) {
-        _maximumNumberOfImage = 9;
+    if (_maxNumber == 0) {
+        _maxNumber = 9;
     }
     [self.view addSubview:self.collectionView];
-    if (!_cropImageOption && !_singleImageOption) {
-        self.collectionView.height = self.view.height-kTopHeight-kTabHeight;
+    if (!_cropOption && !_singleOption) {
+        self.collectionView.height = self.view.height - kTopHeight - kTabHeight;
         // 是否显示原图选项
-        _originBtn.hidden = !self.showOriginImageOption;
+        _originBtn.hidden = !self.showOriginOption;
         [self.view addSubview:self.bottomView];
     }
     // 获取指定相册所有照片
     self.mmPHAssetArray = [[NSMutableArray alloc] init];
-    self.selectedAssetArray = [[NSMutableArray alloc] init];
+    self.selectedArray = [[NSMutableArray alloc] init];
     
     PHFetchOptions * option = [[PHFetchOptions alloc] init];
     option.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
     PHFetchResult * result = [PHAsset fetchAssetsInAssetCollection:self.photoAlbum.collection options:option];
     [result enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         PHAsset * asset = (PHAsset *)obj;
-        if (asset.mediaType == PHAssetMediaTypeImage) {
+        if (!self.showVideo) { // 不显示视频
+            if (asset.mediaType == PHAssetMediaTypeImage) {
+                MMPHAsset * mmAsset = [[MMPHAsset alloc] init];
+                mmAsset.asset = asset;
+                mmAsset.isSelected = NO;
+                [self.mmPHAssetArray addObject:mmAsset];
+            }
+        } else {
             MMPHAsset * mmAsset = [[MMPHAsset alloc] init];
             mmAsset.asset = asset;
             mmAsset.isSelected = NO;
             [self.mmPHAssetArray addObject:mmAsset];
         }
     }];
+}
+
+// 更新UI
+- (void)updateUI
+{
+    if (![self.selectedArray count]) {
+        self.bottomView.alpha = 0.5;
+        self.numberLab.hidden = YES;
+        self.bottomView.userInteractionEnabled = NO;
+    } else {
+        self.bottomView.alpha = 1.0;
+        self.numberLab.hidden = NO;
+        self.numberLab.text = [NSString stringWithFormat:@"%d",(int)[self.selectedArray count]];
+        self.bottomView.userInteractionEnabled = YES;
+    }
+}
+
+#pragma mark - 事件处理
+- (void)rightBarItemAction
+{
+    if (self.completion) {
+        self.completion(nil, _isOrigin, YES);
+    }
+}
+
+- (void)buttonAction:(UIButton *)btn
+{
+    if (btn.tag == 100) // 预览
+    {
+        MMPhotoPreviewController * controller = [[MMPhotoPreviewController alloc] init];
+        controller.assetArray = self.selectedArray;
+        [controller setPhotoDeleteBlock:^(PHAsset *asset) {
+             for (MMPHAsset * mmAsset in self.mmPHAssetArray) {
+                 if (mmAsset.asset == asset)  {
+                     NSInteger index = [self.mmPHAssetArray indexOfObject:mmAsset];
+                     mmAsset.isSelected = NO;
+                     [self.mmPHAssetArray replaceObjectAtIndex:index withObject:mmAsset];
+                     [self.collectionView reloadData];
+                     break;
+                 }
+             }
+             [self updateUI];
+         }];
+        [self.navigationController pushViewController:controller animated:YES];
+    }
+    else if (btn.tag == 101)  // 原图
+    {
+        _isOrigin = !_isOrigin;
+        _originBtn.selected = _isOrigin;
+    }
+    else // 确定
+    {
+        if (!self.completion) {
+            NSLog(@"警告:未设置回传!!!");
+            return;
+        }
+        // 将asset转换为info，并回传
+        NSInteger count = [self.selectedArray count];
+        [self transformAsset:0 totalNum:count];
+    }
+}
+
+- (void)transformAsset:(NSInteger)assetIndex totalNum:(NSInteger)count
+{
+    PHAsset * asset = [self.selectedArray objectAtIndex:assetIndex];
+    [MMPhotoUtil getInfoWithAsset:asset completion:^(NSDictionary *info) {
+        // info替换asset
+        [self.selectedArray replaceObjectAtIndex:assetIndex withObject:info];
+        // 处理下一个
+        if (assetIndex != count - 1) {
+            [self transformAsset:assetIndex + 1 totalNum:count];
+        } else { // 全部转换后回传
+            self.completion(self.selectedArray, _isOrigin, NO);
+        }
+    }];
+}
+
+#pragma mark - UICollectionViewDataSource
+- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
+{
+    return 1;
+}
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
+{
+    return self.mmPHAssetArray.count;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    MMPHAsset * mmAsset = [self.mmPHAssetArray objectAtIndex:indexPath.row];
+    MMPHAssetCell * cell = [collectionView dequeueReusableCellWithReuseIdentifier:CellIdentifier forIndexPath:indexPath];
+    cell.asset = mmAsset.asset;
+    cell.selected = mmAsset.isSelected;
+    return cell;
+}
+
+#pragma mark - UICollectionViewDelegate
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    [collectionView deselectItemAtIndexPath:indexPath animated:YES];
+    MMPHAsset * mmAsset = [self.mmPHAssetArray objectAtIndex:indexPath.row];
+    PHAsset * asset = mmAsset.asset;
+    // 图片裁剪
+    if (_cropOption)
+    {
+        // 获取图片
+        [MMPhotoUtil getInfoWithAsset:asset completion:^(NSDictionary *info) {
+            MMPhotoCropController * controller = [[MMPhotoCropController alloc] init];
+            controller.originalImage = [info objectForKey:MMPhotoOriginalImage];
+            controller.cropSize = self.cropSize;
+            [controller setImageCropBlock:^(UIImage *cropImage){
+                if (!self.completion) {
+                    NSLog(@"警告:未设置回传!!!");
+                    return;
+                }
+                // 更新为裁剪后的Image
+                NSMutableDictionary * dictionary = [NSMutableDictionary dictionaryWithDictionary:info];
+                [dictionary setObject:cropImage forKey:MMPhotoOriginalImage];
+                // 回传
+                self.completion(@[dictionary], _isOrigin, NO);
+            }];
+            [self.navigationController pushViewController:controller animated:YES];
+        }];
+        return;
+    }
+    
+    // 选择一个>>直接返回
+    if (_singleOption)
+    {
+        if (!self.completion) {
+            NSLog(@"警告:未设置block!!!");
+            return;
+        }
+        // 获取图片
+        [MMPhotoUtil getInfoWithAsset:asset completion:^(NSDictionary *info) {
+            // 回传
+            self.completion(@[info], _isOrigin, NO);
+        }];
+        return;
+    }
+    
+    // 提醒
+    if (([self.selectedArray count] == _maxNumber) && !mmAsset.isSelected) {
+        UIAlertView * alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"最多可以添加%ld张图片",(long)_maxNumber] message:nil delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
+        [alert show];
+        return;
+    }
+    mmAsset.isSelected = !mmAsset.isSelected;
+    [self.mmPHAssetArray replaceObjectAtIndex:indexPath.row withObject:mmAsset];
+    [self.collectionView reloadData];
+    
+    if (mmAsset.isSelected) {
+        [self.selectedArray addObject:asset];
+    } else {
+        [self.selectedArray removeObject:asset];
+    }
+    [self updateUI];
 }
 
 #pragma mark - lazy load
@@ -99,7 +264,7 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
         flowLayout.minimumLineSpacing = kMargin;
         flowLayout.minimumInteritemSpacing = 0.f;
         
-        _collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height-kTopHeight) collectionViewLayout:flowLayout];
+        _collectionView = [[UICollectionView alloc]initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height - kTopHeight) collectionViewLayout:flowLayout];
         _collectionView.backgroundColor = [UIColor clearColor];
         _collectionView.delegate = self;
         _collectionView.dataSource = self;
@@ -140,8 +305,8 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
         [_originBtn setTitle:@"原图" forState:UIControlStateNormal];
         [_originBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [_originBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 5, 0, 0)];
-        [_originBtn setImage:[UIImage imageNamed:MMSrcName(@"mmphoto_mark")] forState:UIControlStateNormal];
-        [_originBtn setImage:[UIImage imageNamed:MMSrcName(@"mmphoto_marked")] forState:UIControlStateSelected];
+        [_originBtn setImage:[UIImage imageNamed:@"mmphoto_mark"] forState:UIControlStateNormal];
+        [_originBtn setImage:[UIImage imageNamed:@"mmphoto_marked"] forState:UIControlStateSelected];
         [_originBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
         [_originBtn addTarget:self action:@selector(buttonAction:) forControlEvents:UIControlEventTouchUpInside];
         [_bottomView addSubview:_originBtn];
@@ -168,189 +333,7 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
     return _bottomView;
 }
 
-#pragma mark - 事件处理
-- (void)rightBarItemAction
-{
-    if (self.completion) {
-        self.completion(nil, _isOrigin, YES);
-    }
-}
-
-- (void)leftBarItemAction
-{
-    [self.navigationController popViewControllerAnimated:YES];
-}
-
-- (void)buttonAction:(UIButton *)btn
-{
-    if (btn.tag == 100) // 预览
-    {
-        MMPhotoPreviewController *previewVC = [[MMPhotoPreviewController alloc] init];
-        previewVC.assetArray = self.selectedAssetArray;
-        [previewVC setPhotoDeleteBlock:^(PHAsset *asset) {
-             for (MMPHAsset * mmAsset in self.mmPHAssetArray) {
-                 if (mmAsset.asset == asset)  {
-                     NSInteger index = [self.mmPHAssetArray indexOfObject:mmAsset];
-                     mmAsset.isSelected = NO;
-                     [self.mmPHAssetArray replaceObjectAtIndex:index withObject:mmAsset];
-                     [self.collectionView reloadData];
-                     break;
-                 }
-             }
-             [self updateUI];
-         }];
-        [self.navigationController pushViewController:previewVC animated:YES];
-    }
-    else if (btn.tag == 101)  // 原图
-    {
-        _isOrigin = !_isOrigin;
-        _originBtn.selected = _isOrigin;
-    }
-    else // 确定
-    {
-        if (!self.completion) {
-            NSLog(@"警告:未设置回传!!!");
-            return;
-        }
-        NSMutableArray * result = [[NSMutableArray alloc] init];
-        NSInteger totalNumber = [self.selectedAssetArray count];
-        for(NSInteger i = 0; i < totalNumber; i ++)
-        {
-            PHAsset * asset = [self.selectedAssetArray objectAtIndex:i];
-            // 获取图片
-            [MMPhotoUtil getImageWithAsset:asset completion:^(UIImage *image) {
-                // 封装
-                NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
-                if (asset.location) {
-                    [dictionary setObject:asset.location forKey:MMPhotoLocation];
-                }
-                [dictionary setObject:@(asset.mediaType) forKey:MMPhotoMediaType];
-                [dictionary setObject:image forKey:MMPhotoOriginalImage];
-                // 加入数组
-                [result addObject:dictionary];
-                // 回传
-                if (i == totalNumber-1) {
-                    self.completion(result, _isOrigin, NO);
-                }
-            }];
-        }
-    }
-}
-
-- (void)updateUI
-{
-    if (![self.selectedAssetArray count]) {
-        self.bottomView.alpha = 0.5;
-        self.numberLab.hidden = YES;
-        self.bottomView.userInteractionEnabled = NO;
-    } else {
-        self.bottomView.alpha = 1.0;
-        self.numberLab.hidden = NO;
-        self.numberLab.text = [NSString stringWithFormat:@"%d",(int)[self.selectedAssetArray count]];
-        self.bottomView.userInteractionEnabled = YES;
-    }
-}
-
-#pragma mark - UICollectionViewDataSource
-- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
-{
-    return 1;
-}
-
-- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
-{
-    return self.mmPHAssetArray.count;
-}
-
-- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
-{
-    MMPHAsset * mmAsset = [self.mmPHAssetArray objectAtIndex:indexPath.row];
-    // 赋值
-    MMPHAssetCell * cell = [collectionView dequeueReusableCellWithReuseIdentifier:CellIdentifier forIndexPath:indexPath];
-    cell.asset = mmAsset.asset;
-    cell.selected = mmAsset.isSelected;
-    return cell;
-}
-
-#pragma mark - UICollectionViewDelegate
-- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
-{
-    [collectionView deselectItemAtIndexPath:indexPath animated:YES];
-    MMPHAsset * mmAsset = [self.mmPHAssetArray objectAtIndex:indexPath.row];
-    PHAsset * asset = mmAsset.asset;
-    // 图片裁剪
-    if (_cropImageOption)
-    {
-        // 获取图片
-        [MMPhotoUtil getImageWithAsset:asset completion:^(UIImage *image) {
-            MMPhotoCropController * controller = [[MMPhotoCropController alloc] init];
-            controller.originalImage = image;
-            controller.imageCropSize = self.imageCropSize;
-            [controller setImageCropBlock:^(UIImage *cropImage){
-                if (!self.completion) {
-                    NSLog(@"警告:未设置回传!!!");
-                    return;
-                }
-                // 封装
-                NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
-                if (asset.location) {
-                    [dictionary setObject:asset.location forKey:MMPhotoLocation];
-                }
-                [dictionary setObject:@(asset.mediaType) forKey:MMPhotoMediaType];
-                [dictionary setObject:cropImage forKey:MMPhotoOriginalImage];
-                // 回传
-                self.completion(@[dictionary], _isOrigin, NO);
-            }];
-            [self.navigationController pushViewController:controller animated:YES];
-        }];
-        return;
-    }
-    
-    // 选择一个>>直接返回
-    if (_singleImageOption)
-    {
-        if (!self.completion) {
-            NSLog(@"警告:未设置回传!!!");
-            return;
-        }
-        // 获取图片
-        [MMPhotoUtil getImageWithAsset:asset completion:^(UIImage *image) {
-            // 封装
-            NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] init];
-            if (asset.location) {
-                [dictionary setObject:asset.location forKey:MMPhotoLocation];
-            }
-            [dictionary setObject:@(asset.mediaType) forKey:MMPhotoMediaType];
-            [dictionary setObject:image forKey:MMPhotoOriginalImage];
-            // 回传
-            self.completion(@[dictionary], _isOrigin, NO);
-        }];
-        return;
-    }
-    
-    // 提醒
-    if (([self.selectedAssetArray count] == _maximumNumberOfImage) && !mmAsset.isSelected) {
-        UIAlertView * alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"最多可以添加%ld张图片",(long)_maximumNumberOfImage]
-                                                         message:nil
-                                                        delegate:nil
-                                               cancelButtonTitle:@"知道了"
-                                               otherButtonTitles:nil, nil];
-        [alert show];
-        return;
-    }
-    mmAsset.isSelected = !mmAsset.isSelected;
-    [self.mmPHAssetArray replaceObjectAtIndex:indexPath.row withObject:mmAsset];
-    [self.collectionView reloadData];
-    
-    if (mmAsset.isSelected) {
-        [self.selectedAssetArray addObject:asset];
-    } else {
-        [self.selectedAssetArray removeObject:asset];
-    }
-    [self updateUI];
-}
-
-#pragma mark - 内存警告
+#pragma mark -
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -368,6 +351,8 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
 
 @property (nonatomic, strong) UIImageView * imageView;
 @property (nonatomic, strong) UIImageView * overLay;
+@property (nonatomic, strong) UIImageView * videoOverLay;
+@property (nonatomic, strong) UILabel * durationLabel;
 
 @end
 
@@ -377,33 +362,31 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
 {
     self = [super initWithFrame:frame];
     if (self) {
-        [self addSubview:self.imageView];
-        [self addSubview:self.overLay];
-        self.overLay.hidden = YES;
-    }
-    return self;
-}
-
-#pragma mark - getter
-- (UIImageView *)imageView
-{
-    if (!_imageView) {
         _imageView = [[UIImageView alloc] initWithFrame:self.bounds];
         _imageView.layer.masksToBounds = YES;
         _imageView.clipsToBounds = YES;
         _imageView.contentMode = UIViewContentModeScaleAspectFill;
         _imageView.contentScaleFactor = [[UIScreen mainScreen] scale];
-    }
-    return _imageView;
-}
+        [self addSubview:_imageView];
+        
+        UIImage * image = [UIImage imageNamed:@"mmphoto_video_icon"];
+        _videoOverLay = [[UIImageView alloc] initWithImage:image];
+        _videoOverLay.origin = CGPointMake(8, _imageView.height - image.size.height - 5);
+        [self addSubview:_videoOverLay];
+        _videoOverLay.hidden = YES;
+        
+        _durationLabel = [[UILabel alloc] initWithFrame:CGRectMake(_videoOverLay.right + 8, _videoOverLay.top, _imageView.width - (_videoOverLay.right + 16), _videoOverLay.height)];
+        _durationLabel.textColor = [UIColor whiteColor];
+        _durationLabel.font = [UIFont systemFontOfSize:12.0];
+        [self addSubview:_durationLabel];
+        _durationLabel.hidden = YES;
 
-- (UIImageView *)overLay
-{
-    if (!_overLay) {
         _overLay = [[UIImageView alloc] initWithFrame:self.bounds];
-        _overLay.image = [UIImage imageNamed:MMSrcName(@"mmphoto_overlay")];
+        _overLay.image = [UIImage imageNamed:@"mmphoto_overlay"];
+        [self addSubview:_overLay];
+        _overLay.hidden = YES;
     }
-    return _overLay;
+    return self;
 }
 
 #pragma mark - setter
@@ -414,7 +397,16 @@ static NSString * const CellIdentifier = @"MMPHAssetCell";
 
 - (void)setAsset:(PHAsset *)asset
 {
-    [MMPhotoUtil getImageWithAsset:asset size:self.imageView.size completion:^(UIImage *image) {
+    if (asset.mediaType == PHAssetMediaTypeVideo) {
+        self.videoOverLay.hidden = NO;
+        self.durationLabel.hidden = NO;
+        self.durationLabel.text = [MMPhotoUtil getDurationFormat:asset.duration];
+    } else {
+        self.videoOverLay.hidden = YES;
+        self.durationLabel.hidden = YES;
+        self.durationLabel.text = nil;
+    }
+    [MMPhotoUtil getImageWithAsset:asset imageSize:self.imageView.size completion:^(UIImage *image) {
         self.imageView.image = image;
     }];
 }
