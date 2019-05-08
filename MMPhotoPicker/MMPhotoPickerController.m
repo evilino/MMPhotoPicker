@@ -33,7 +33,6 @@ static CGFloat rowHeight = 60.f;
         _showEmptyAlbum = NO;
         _showVideo = NO;
         _showOriginOption = NO;
-        _mainColor = kMainColor;
         _maxNumber = 9;
     }
     return self;
@@ -149,7 +148,6 @@ static CGFloat rowHeight = 60.f;
 {
     MMPhotoAssetController * controller = [[MMPhotoAssetController alloc] init];
     controller.photoAlbum = photoAlbum;
-    controller.mainColor = self.mainColor;
     controller.maxNumber = self.maxNumber;
     controller.showOriginOption = self.showOriginOption;
     controller.showVideo = self.showVideo;

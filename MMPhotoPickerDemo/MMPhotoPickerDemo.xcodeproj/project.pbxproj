@@ -27,6 +27,7 @@
 		FA8A0A76227FDB0800F26919 /* MMPhotoPicker.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FA8A0A75227FDB0800F26919 /* MMPhotoPicker.xcassets */; };
 		FA8A0A78227FECEA00F26919 /* default_save@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = FA8A0A77227FECEA00F26919 /* default_save@2x.png */; };
 		FA8A0A7C2280557000F26919 /* Photos.png in Resources */ = {isa = PBXBuildFile; fileRef = FA8A0A7B2280557000F26919 /* Photos.png */; };
+		FAB635342282BCD5006199CF /* PHAsset+Category.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB635332282BCD5006199CF /* PHAsset+Category.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,6 +62,8 @@
 		FA8A0A75227FDB0800F26919 /* MMPhotoPicker.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = MMPhotoPicker.xcassets; sourceTree = "<group>"; };
 		FA8A0A77227FECEA00F26919 /* default_save@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "default_save@2x.png"; sourceTree = "<group>"; };
 		FA8A0A7B2280557000F26919 /* Photos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Photos.png; path = ../../Photos.png; sourceTree = "<group>"; };
+		FAB635322282BCD5006199CF /* PHAsset+Category.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PHAsset+Category.h"; sourceTree = "<group>"; };
+		FAB635332282BCD5006199CF /* PHAsset+Category.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "PHAsset+Category.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +135,8 @@
 				8BFCD9361FB54B7400C603E7 /* MMPhotoCropController.m */,
 				8BFCD92E1FB548FA00C603E7 /* UIView+Geometry.h */,
 				8BFCD92F1FB548FA00C603E7 /* UIView+Geometry.m */,
+				FAB635322282BCD5006199CF /* PHAsset+Category.h */,
+				FAB635332282BCD5006199CF /* PHAsset+Category.m */,
 				8BFCD94A1FB5593C00C603E7 /* MMPhotoUtil.h */,
 				8BFCD94B1FB5593C00C603E7 /* MMPhotoUtil.m */,
 				FA8A0A75227FDB0800F26919 /* MMPhotoPicker.xcassets */,
@@ -235,6 +240,7 @@
 			files = (
 				8BFCD94C1FB5593C00C603E7 /* MMPhotoUtil.m in Sources */,
 				8BFCD9311FB548FA00C603E7 /* UIView+Geometry.m in Sources */,
+				FAB635342282BCD5006199CF /* PHAsset+Category.m in Sources */,
 				8BFCD91C1FB548E600C603E7 /* ViewController.m in Sources */,
 				8BFCD9371FB54B7400C603E7 /* MMPhotoCropController.m in Sources */,
 				8BFCD9191FB548E600C603E7 /* AppDelegate.m in Sources */,

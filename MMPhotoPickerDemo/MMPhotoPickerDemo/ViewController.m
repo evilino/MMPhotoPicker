@@ -22,7 +22,7 @@ static NSString * const CellIdentifier = @"PhotoCell";
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.title = @"Demo";
+    self.title = @"示例";
     self.view.backgroundColor = [UIColor whiteColor];
     CGFloat margin = (self.view.width - 2 * 100) / 3.0;
     

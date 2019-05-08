@@ -21,8 +21,6 @@
 // 优先级 cropOption > singleOption > maxNumber
 // cropOption = YES 时，不显示视频
 
-// 主色调[默认红色]
-@property (nonatomic, strong) UIColor * mainColor;
 // 是否回传原图 [可用于控制图片压系数]
 @property (nonatomic, assign) BOOL isOrigin;
 // 是否显示空相册 [默认NO]

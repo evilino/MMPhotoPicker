@@ -7,20 +7,12 @@
 //
 
 #import "UIView+Geometry.h"
+#import "PHAsset+Category.h"
 #import "MMPhotoUtil.h"
 
-// iPhone4
-#define kIPhone4                CGSizeEqualToSize(CGSizeMake(640,960), [[[UIScreen mainScreen] currentMode] size])
-// iPhone5
-#define kIPhone5                CGSizeEqualToSize(CGSizeMake(640,1136), [[[UIScreen mainScreen] currentMode] size])
-// iPhone6
-#define kIPhone6                CGSizeEqualToSize(CGSizeMake(750,1334), [[[UIScreen mainScreen] currentMode] size])
+
 // iPhone6p
 #define kIPhone6p               CGSizeEqualToSize(CGSizeMake(1242,2208), [[[UIScreen mainScreen] currentMode] size])
-// iPhoneX | iPhoneXS
-#define kIPhoneX                CGSizeEqualToSize(CGSizeMake(1125,2436), [[[UIScreen mainScreen] currentMode] size])
-// iPhoneXR
-#define kIPhoneXR               CGSizeEqualToSize(CGSizeMake(828,1792), [[[UIScreen mainScreen] currentMode] size])
 // iPhoneXS Max
 #define kIPhoneXM               CGSizeEqualToSize(CGSizeMake(1242,2688), [[[UIScreen mainScreen] currentMode] size])
 

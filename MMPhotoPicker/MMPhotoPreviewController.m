@@ -123,25 +123,14 @@
 - (void)singleTapGestureCallback:(UITapGestureRecognizer *)gesture
 {
     if (self.curPlayer) { // 控制播放
-        if (self.curPlayer.isPlaying) {
-            [self.curPlayer pause];
-            self.curPlayer.isPlaying = NO;
-            self.videoOverLay.hidden = NO;
-            self.isHidden = NO;
-        } else {
-            [self.curPlayer play];
-            self.curPlayer.isPlaying = YES;
-            self.videoOverLay.hidden = YES;
-            self.isHidden = YES;
-            
-            // 播放结束
+        BOOL isPlaying = self.curPlayer.isPlaying;
+        [self avplayControl:isPlaying];
+        if (!isPlaying) { // 暂停 -> 播放
+            // 监听播放进度
             WS(wSelf);
             _timeObserver = [self.curPlayer addPeriodicTimeObserverForInterval:CMTimeMake(1.0, 1.0) queue:dispatch_get_main_queue() usingBlock:^(CMTime time) {
-                if (time.value == self.curPlayer.duration.value) {
-                    [wSelf.curPlayer pause];
-                    wSelf.curPlayer.isPlaying = NO;
-                    wSelf.videoOverLay.hidden = NO;
-                    wSelf.isHidden = NO;
+                if (time.value == self.curPlayer.duration.value) { // 播放完成
+                    [wSelf avplayControl:YES]; // 暂停
                     [wSelf.curPlayer seekToTime:kCMTimeZero];
                     if (wSelf.timeObserver) {
                         [wSelf.curPlayer removeTimeObserver:wSelf.timeObserver];
@@ -161,6 +150,21 @@
     }];
 }
 
+- (void)avplayControl:(BOOL)isPlaying
+{
+    if (isPlaying) { // 播放 -> 暂停
+        [self.curPlayer pause];
+        self.curPlayer.isPlaying = NO;
+        self.videoOverLay.hidden = NO;
+        self.isHidden = NO;
+    } else { // 暂停 -> 播放
+        [self.curPlayer play];
+        self.curPlayer.isPlaying = YES;
+        self.videoOverLay.hidden = YES;
+        self.isHidden = YES;
+    }
+}
+
 #pragma mark - 删除处理
 - (void)backAction
 {
@@ -171,15 +175,15 @@
 {
     // 移除视图
     PHAsset * asset = [self.assetArray objectAtIndex:_index];
-    [self deleteImage];
+    [self deleteAsset];
     [self.assetArray removeObjectAtIndex:_index];
     [self.playerArray removeObjectAtIndex:_index];
     // 更新索引
     [self resetIndex];
     _titleLab.text = [NSString stringWithFormat:@"%ld/%ld",(long)_index+1,(long)[self.assetArray count]];
     // block
-    if (self.photoDeleteBlock) {
-        self.photoDeleteBlock(asset);
+    if (self.assetDeleteHandler) {
+        self.assetDeleteHandler(asset);
     }
     // 返回
     if (![self.assetArray count]) {
@@ -274,7 +278,7 @@
     }];
 }
 
-- (void)deleteImage
+- (void)deleteAsset
 {
     // 移除当前视图
     NSInteger tag = 100 + _index;

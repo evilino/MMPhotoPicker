@@ -20,8 +20,6 @@
 
 // 所选相册
 @property (nonatomic, strong) MMPhotoAlbum * photoAlbum;
-// 主色调[默认红色]
-@property (nonatomic, strong) UIColor * mainColor;
 // 是否显示视频 [默认NO]
 @property (nonatomic, assign) BOOL showVideo;
 // 是否显示原图选项[默认NO]
@@ -39,20 +37,9 @@
 
 @end
 
+#pragma mark - ################## MMAssetCell
 
-#pragma mark - ################## MMPHAsset
-@interface MMPHAsset : NSObject
-
-// 资源
-@property (nonatomic, strong) PHAsset * asset;
-// 是否已选择
-@property (nonatomic, assign) BOOL isSelected;
-
-@end
-
-#pragma mark - ################## MMPHAsset
-
-@interface MMPHAssetCell : UICollectionViewCell
+@interface MMAssetCell : UICollectionViewCell
 
 @property (nonatomic, strong) PHAsset * asset;
 

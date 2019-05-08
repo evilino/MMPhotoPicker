@@ -6,7 +6,7 @@
 [![License MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://raw.githubusercontent.com/ChellyLau/MMPhotoPicker/master/LICENSE)&nbsp;
 
 
-`MMPhotoPicker`基于`Photos`框架，集成了视频、图片选择器（支持多选、单选、对图片进行裁剪、选择原图、可预览）以及创建自定义相册，并保存视频、图片到自定义相册。基于`AssetsLibrary`框架的图片选择器，可以参考[MMImagePicker](https://github.com/ChellyLau/MMImagePicker)。
+`MMPhotoPicker`基于`Photos`框架，集成了视频、图片选择器（支持多选、单选、对图片进行裁剪、选择原图、视频图片预览）以及创建自定义相册，并保存视频、图片到自定义相册。基于`AssetsLibrary`框架的图片选择器，可以参考[MMImagePicker](https://github.com/ChellyLau/MMImagePicker)。
 
 
 ## Photos框架简述
@@ -22,8 +22,6 @@ MMPhotoPickerController属性介绍：
 // 优先级 cropOption > singleOption > maxNumber
 // cropOption = YES 时，不显示视频
 
-// 主色调[默认红色]
-@property (nonatomic, strong) UIColor * mainColor;
 // 是否回传原图 [可用于控制图片压系数]
 @property (nonatomic, assign) BOOL isOrigin;
 // 是否显示空相册 [默认NO]
