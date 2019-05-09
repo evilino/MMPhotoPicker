@@ -22,7 +22,7 @@ static CGFloat rowHeight = 60.f;
 
 @implementation MMPhotoPickerController
 
-#pragma mark - 初始化
+#pragma mark - life cycle
 - (instancetype)init
 {
     self = [super init];
@@ -34,6 +34,9 @@ static CGFloat rowHeight = 60.f;
         _showVideo = NO;
         _showOriginOption = NO;
         _maxNumber = 9;
+        _maskImgName = @"mmphoto_overlay";
+        _markedImgName = @"mmphoto_marked";
+        _mainColor = kMainColor;
     }
     return self;
 }
@@ -154,7 +157,10 @@ static CGFloat rowHeight = 60.f;
     controller.singleOption = self.singleOption;
     controller.cropOption = self.cropOption;
     controller.cropSize = self.cropSize;
-    
+    controller.mainColor = self.mainColor;
+    controller.maskImgName = self.maskImgName;
+    controller.markedImgName = self.markedImgName;
+
     WS(wSelf);
     [controller setCompletion:^(NSArray *info, BOOL isOrigin, BOOL isCancel){
         wSelf.isOrigin = isOrigin;

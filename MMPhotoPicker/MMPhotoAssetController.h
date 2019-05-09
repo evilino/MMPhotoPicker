@@ -32,6 +32,14 @@
 @property (nonatomic, assign) CGSize cropSize;
 // 最大选择数目[默认9张、如果显示视频，也包括视频数量]
 @property (nonatomic, assign) NSInteger maxNumber;
+
+// 主色调[默认红色]
+@property (nonatomic, strong) UIColor * mainColor;
+// 选中的遮罩图片名称[默认为本控件内图片]
+@property (nonatomic, copy) NSString * maskImgName;
+// 原图选项选中图片名称[默认为本控件内图片]
+@property (nonatomic, copy) NSString * markedImgName;
+
 // 选择回传[isOrigin:是否回传原图[可用于控制图片压系数]]
 @property (nonatomic, copy) void(^completion)(NSArray * info,BOOL isOrigin, BOOL isCancel);
 
@@ -42,5 +50,6 @@
 @interface MMAssetCell : UICollectionViewCell
 
 @property (nonatomic, strong) PHAsset * asset;
+@property (nonatomic, copy) NSString * maskImgName;
 
 @end

@@ -25,7 +25,6 @@ static NSString * const CellIdentifier = @"PhotoCell";
     self.title = @"示例";
     self.view.backgroundColor = [UIColor whiteColor];
     CGFloat margin = (self.view.width - 2 * 100) / 3.0;
-    
     // 选择图片
     UIButton * btn = [[UIButton alloc] initWithFrame:CGRectMake(margin, 50, 100, 44)];
     btn.backgroundColor = [UIColor lightGrayColor];
@@ -33,15 +32,13 @@ static NSString * const CellIdentifier = @"PhotoCell";
     [btn setTitle:@"选择图片" forState:UIControlStateNormal];
     [btn addTarget:self action:@selector(pickerClicked) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:btn];
-   
-    // 保存图片到自定义相册
+    // 保存图片
     btn = [[UIButton alloc] initWithFrame:CGRectMake(btn.right+margin, 50, 100, 44)];
     btn.backgroundColor = [UIColor lightGrayColor];
     [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [btn setTitle:@"保存图片" forState:UIControlStateNormal];
     [btn addTarget:self action:@selector(saveClicked) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:btn];
-   
     // 图片显示
     self.infoArray = [[NSMutableArray alloc] init];
     [self.view addSubview:self.collectionView];
@@ -58,8 +55,8 @@ static NSString * const CellIdentifier = @"PhotoCell";
     controller.showVideo = YES;
     controller.cropOption = NO;
     controller.singleOption = NO;
-    controller.maxNumber = 6;
-    
+    controller.maxNumber = 6; 
+
     UINavigationController * navigation = [[UINavigationController alloc] initWithRootViewController:controller];
     [navigation.navigationBar setBackgroundImage:[UIImage imageNamed:@"default_bar"] forBarMetrics:UIBarMetricsDefault];
     navigation.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor whiteColor],NSFontAttributeName:[UIFont boldSystemFontOfSize:19.0]};

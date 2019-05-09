@@ -31,6 +31,7 @@ static NSString * const CellIdentifier = @"MMAssetCell";
 
 @implementation MMPhotoAssetController
 
+#pragma mark - life cycle
 - (instancetype)init
 {
     self = [super init];
@@ -41,6 +42,9 @@ static NSString * const CellIdentifier = @"MMAssetCell";
         _showVideo = NO;
         _showOriginOption = NO;
         _maxNumber = 9;
+        _maskImgName = @"mmphoto_overlay";
+        _markedImgName = @"mmphoto_marked";
+        _mainColor = kMainColor;
     }
     return self;
 }
@@ -165,6 +169,7 @@ static NSString * const CellIdentifier = @"MMAssetCell";
     PHAsset * asset = [self.assetArray objectAtIndex:indexPath.row];
     MMAssetCell * cell = [collectionView dequeueReusableCellWithReuseIdentifier:CellIdentifier forIndexPath:indexPath];
     cell.asset = asset;
+    cell.maskImgName = self.maskImgName;
     return cell;
 }
 
@@ -216,7 +221,6 @@ static NSString * const CellIdentifier = @"MMAssetCell";
         return;
     }
     asset.selected = !asset.selected;
-//    [self.assetArray replaceObjectAtIndex:indexPath.row withObject:asset];
     [self.collectionView reloadData];
     
     if (asset.selected) {
@@ -280,13 +284,13 @@ static NSString * const CellIdentifier = @"MMAssetCell";
         [_originBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [_originBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 5, 0, 0)];
         [_originBtn setImage:[UIImage imageNamed:@"mmphoto_mark"] forState:UIControlStateNormal];
-        [_originBtn setImage:[UIImage imageNamed:@"mmphoto_marked"] forState:UIControlStateSelected];
+        [_originBtn setImage:[UIImage imageNamed:_markedImgName] forState:UIControlStateSelected];
         [_originBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
         [_originBtn addTarget:self action:@selector(buttonAction:) forControlEvents:UIControlEventTouchUpInside];
         [_bottomView addSubview:_originBtn];
         // 选取的数量
         _numberLab = [[UILabel alloc] initWithFrame:CGRectMake(self.view.width-70, (btHeight-20)/2, 20, 20)];
-        _numberLab.backgroundColor = kMainColor;
+        _numberLab.backgroundColor = _mainColor;
         _numberLab.layer.cornerRadius = _numberLab.frame.size.height/2;
         _numberLab.layer.masksToBounds = YES;
         _numberLab.textColor = [UIColor whiteColor];
@@ -300,7 +304,7 @@ static NSString * const CellIdentifier = @"MMAssetCell";
         _finishBtn.tag = 102;
         [_finishBtn.titleLabel setFont:[UIFont systemFontOfSize:16.0]];
         [_finishBtn setTitle:@"确定" forState:UIControlStateNormal];
-        [_finishBtn setTitleColor:kMainColor forState:UIControlStateNormal];
+        [_finishBtn setTitleColor:_mainColor forState:UIControlStateNormal];
         [_finishBtn addTarget:self action:@selector(buttonAction:) forControlEvents:UIControlEventTouchUpInside];
         [_bottomView addSubview:_finishBtn];
     }
@@ -352,7 +356,6 @@ static NSString * const CellIdentifier = @"MMAssetCell";
         _durationLabel.hidden = YES;
 
         _overLay = [[UIImageView alloc] initWithFrame:self.bounds];
-        _overLay.image = [UIImage imageNamed:@"mmphoto_overlay"];
         [self addSubview:_overLay];
         _overLay.hidden = YES;
     }
@@ -360,6 +363,11 @@ static NSString * const CellIdentifier = @"MMAssetCell";
 }
 
 #pragma mark - setter
+- (void)setMaskImgName:(NSString *)maskImgName
+{
+    self.overLay.image = [UIImage imageNamed:maskImgName];
+}
+
 - (void)setAsset:(PHAsset *)asset
 {
     if (asset.mediaType == PHAssetMediaTypeVideo) {
